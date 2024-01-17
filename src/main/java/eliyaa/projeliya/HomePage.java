@@ -33,6 +33,8 @@ import com.github.javaparser.ast.expr.AssignExpr;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.objectweb.asm.Label;
+import org.springframework.data.mongodb.core.aggregation.AccumulatorOperators.Max;
+
 import static org.junit.Assert.assertArrayEquals;
 import java.io.*;
 import java.lang.reflect.*;
@@ -49,7 +51,8 @@ import java.util.List;
 
 @Route("")
 public class HomePage extends VerticalLayout {
-
+    public static String stepsFunc = "StepFunc(int[] array)";
+    public static String returnFunc = "return arr; }";
     private TextArea answerTextArea = new TextArea("Your Answer");
     private Button submitButton = new Button("Submit Answer");
     private Paragraph answerParagraph = new Paragraph();
@@ -70,25 +73,7 @@ public class HomePage extends VerticalLayout {
 
     public void checkAnswer(String methodcode2) throws IOException, ClassNotFoundException, NoSuchMethodException,
             SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-
-        // String methodcode2 =
-        // "public static int[] sortArray(int[] arr) {\n" +
-        // " int len = arr.length;\n" +
-        // "\n" +
-        // " for (int i = 0; i < len - 1; i++) {\n" +
-        // " for (int j = 0; j < len - i - 1; j++) {\n" +
-        // " if (arr[j] > arr[j + 1]) {\n" +
-        // " int temp = arr[j];\n" +
-        // " arr[j] = arr[j + 1];\n" +
-        // " arr[j + 1] = temp;\n" +
-        // " }\n" +
-        // " }\n" +
-        // " }\n" +
-        // "\n" +
-        // " return arr;\n" +
-        // "}";
-        // String methodCode = "public static int add(int a, int b) { return a + b; }";
-        // String cleanMethod1 = cleanCode(methodCode);
+        String classTitle2 = "public class RunPitaron {";
 
         String cleanedMethod2 = cleanCode(methodcode2);
 
@@ -104,29 +89,18 @@ public class HomePage extends VerticalLayout {
         Files.createDirectories(filePath.getParent());
 
         // Use Files.newBufferedWriter to write to the file
-        try (BufferedWriter writer = Files.newBufferedWriter(filePath, StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING)) {
-            writer.write(pitaronProg);
-        }
 
         // Create source code file
         String className = "RunPitaron";
         String fileName = className + ".java";
-        try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.println("public class " + className + " {");
-            writer.println(cleanedMethod2);
-            writer.println("}");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        biuldFile(fileName, className, cleanedMethod2);
 
         // Compile the source file
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         int compileResult = compiler.run(null, null, null, fileName);
         System.out.println("Compilation result: " + compileResult);
 
-        if (compileResult == 0) 
-        {
+        if (compileResult == 0) {
             add(new H1("Compilation result: Sucssesfull"));
 
             URLClassLoader classLoader = new URLClassLoader(new URL[] { new File("./").toURI().toURL() });
@@ -161,6 +135,7 @@ public class HomePage extends VerticalLayout {
                     "    return arr;";
 
             try {
+                System.out.println("pitaron prog: " + pitaronProg);
                 CompilationUnit cu = StaticJavaParser.parse(pitaronProg);
 
                 int variablesCount = cu.findAll(VariableDeclarator.class).size();
@@ -206,8 +181,7 @@ public class HomePage extends VerticalLayout {
                     { 5, -10 } // Edge case: Negative and positive numbers
             };
 
-            int[][] expectedOutputsArray = 
-            {
+            int[][] expectedOutputsArray = {
                     { 5, 7 },
                     { 3, 10 },
                     { 2, 9 },
@@ -222,13 +196,63 @@ public class HomePage extends VerticalLayout {
             Type[] parameters = method.getGenericParameterTypes();
             System.out.println("Number of parameters: " + parameters.length);
             System.out.println("Parameter type: " + parameters[0].getTypeName());
-            int counter =  inputsArray.length;
+            int counter = inputsArray.length;
             int totalTests = inputsArray.length;
             int errorCount = 0;
+            System.out.println("------------------------final-----------");
+            System.out.println(cleanedMethod2);
+            System.out.println("------------------------final-----------");
+            String code = processCode(cleanedMethod2);
+            System.out.println("------------------------final-----------");
+            System.out.println(code);
+            System.out.println("------------------------final-----------");
 
-            for (int i = 0; i < totalTests; i++) 
-            {
-                result = method.invoke(null,inputsArray[i]);
+            // CompilationUnit cu = StaticJavaParser.parse(code);
+            // int forLoopCount = cu.findAll(ForStmt.class).size();
+            // int whileLoopCount = cu.findAll(WhileStmt.class).size();''
+            Path filePath2= Paths.get("src/eliyaa/projecteliya/RunPitaron2.java");
+            // Create directories if they don't exist
+            Files.createDirectories(filePath.getParent());
+            
+            String className2 = "RunPitaron2";
+            String fileName2 = className2 + ".java";
+            biuldFile1(fileName2, className2, cleanCode(code));
+            System.out.println(code);
+            System.out.println("Was here1");            
+            // Build the file and load the class
+            
+            // Compile the Java file
+            // JavaCompiler compiler2 = ToolProvider.getSystemJavaCompiler();
+            // int compileResult2 = compiler2.run(null, null, null, fileName2);
+            // System.out.println("Compilation result for " + className2 + ": " + compileResult2);
+            
+            // if (compileResult2 == 0) {
+                try {
+                    URLClassLoader classLoader2 = new URLClassLoader(new URL[] { new File("./").toURI().toURL() });
+                    Class<?> dynamicClass2 = Class.forName(className2, true, classLoader2);
+                    // Invoke the method
+                    
+                    Method myMethod = dynamicClass2.getMethod("StepFunc", int[].class);
+                    int[] inputArray = {1, 2, 3};
+                    Object resultThing = myMethod.invoke(null, (Object) inputArray);
+        
+                    // Process the result
+                    int[] modifiedArray = (int[]) resultThing;
+                    for (int value : modifiedArray) {
+                        System.out.println("Value: " + value);
+                    }
+                } catch (Exception e) 
+                {
+                    e.printStackTrace();
+                }
+            // } else {
+
+            //     System.out.println("un compiled code :"+code);
+            //     System.out.println("Compilation for " + className2 + " failed. Cannot execute the method.");
+            // }
+
+            for (int i = 0; i < totalTests; i++) {
+                result = method.invoke(null, inputsArray[i]);
                 int[] resultArray = (int[]) result;
 
                 System.out.println("Test Case " + (i + 1) + ":");
@@ -238,10 +262,9 @@ public class HomePage extends VerticalLayout {
 
                 for (int v = 0; v < resultArray.length; v++) 
                 {
-                    if (resultArray[v] != expectedOutputsArray[i][v]) 
-                    {
+                    if (resultArray[v] != expectedOutputsArray[i][v]) {
                         errorCount--;
-                        System.out.println(resultArray[v]+"good arr:"+expectedOutputsArray[i][v]);
+                        System.out.println(resultArray[v] + "good arr:" + expectedOutputsArray[i][v]);
                     }
                 }
 
@@ -292,10 +315,10 @@ public class HomePage extends VerticalLayout {
             System.out.println("Compilation failed. Cannot execute the method.");
             System.out.println("the grade is:2");
         }
-    }
+        }
+        
 
-    private static String truncateMessage(String message, int maxLength) 
-    {
+    private static String truncateMessage(String message, int maxLength) {
         return message.substring(0, Math.min(message.length(), maxLength));
     }
 
@@ -355,8 +378,7 @@ public class HomePage extends VerticalLayout {
                 System.out.println("Error: " + responseCode);
             }
 
-        } catch (IOException e) 
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -401,6 +423,71 @@ public class HomePage extends VerticalLayout {
             }
         }
         return arr;
+    }
+
+    public static String processCode(String inputCode) 
+    {
+
+        int start = inputCode.indexOf("{");
+        int end = 0, end2 = -1;
+        end = inputCode.indexOf("}");
+
+        String smallInputString = inputCode.substring(start, end + 1);
+
+        System.out.println("----------------------------------------");
+        System.out.println(smallInputString);
+        System.out.println("----------------------------------------");
+
+        String classTitle = "public class RunPitaron2  {";
+        // String inputCode2 = classTitle + inputCode +"}";
+        String forParsing = classTitle + "public static int[]" + stepsFunc + smallInputString + "}}" + returnFunc + "}";
+
+        System.out.println("parsing String ---::" + forParsing);
+        // CompilationUnit cu = StaticJavaParser.parse(cleanCode(forParsing));
+
+        String arrayName = "arr";
+        // int forLoopCount = cu.findAll(ForStmt.class).size();
+        // int whileLoopCount = cu.findAll(WhileStmt.class).size();
+        // int sizeOfLoops = forLoopCount + whileLoopCount ;
+        int sizeOfLoops = 2;
+        StringBuilder stringBuilder = new StringBuilder(smallInputString);
+        int openCodeIndex = stringBuilder.indexOf("{");
+        stringBuilder.insert(openCodeIndex + 1, "int []" + arrayName + "= new int [" + sizeOfLoops + "];");
+
+        int forIndex = stringBuilder.indexOf("for");
+        int index = 0;
+        while (forIndex != -1) {
+            int openBracketIndex = stringBuilder.indexOf("{", forIndex);
+            stringBuilder.insert(openBracketIndex + 1, arrayName + "[" + index + "]++;");
+            forIndex = stringBuilder.indexOf("for", openBracketIndex);
+            index++;
+        }
+        forIndex = stringBuilder.indexOf("while");
+        while (forIndex != -1) {
+            int openBracketIndex = stringBuilder.indexOf("{", forIndex);
+            stringBuilder.insert(openBracketIndex + 1, arrayName + "[" + index + "]++;");
+            forIndex = stringBuilder.indexOf("while", openBracketIndex);
+            index++;
+        }
+
+        return cleanCode(classTitle + "public static int[]"+stepsFunc +stringBuilder + "}}"+returnFunc+"}");
+    }
+    public static void biuldFile1(String fileName, String className, String cleanedMethod2) {
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            writer.println(cleanedMethod2);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void biuldFile(String fileName, String className, String cleanedMethod2) {
+        try (PrintWriter writer = new PrintWriter(fileName)) {
+            writer.println("public class " + className + " {");
+            writer.println(cleanedMethod2);
+            writer.println("}");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private static boolean isArithmeticOperation(String operator) {
