@@ -6,7 +6,9 @@ public class Answer
     private int numQuastion;
     private String Answer;
     private long miliSecondsRunTime;
-    private int errorsCode;    
+    private int errorsCode;
+  
+    
     public Answer(String nameOfWriter, int numQuastion, String answer, long miliSecondsRunTime, int errorsCode) {
         this.nameOfWriter = nameOfWriter;
         this.numQuastion = numQuastion;

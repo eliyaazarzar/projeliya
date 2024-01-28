@@ -10,12 +10,14 @@ public class Question
     private String question;
     // רשימה של כל התשובות
     private List<Answer> answers;
-
+    private Answer bestAnswer;
     // Constructor with appropriate data types
-    public Question(int num, String question, List<Answer> answers) {
+    public Question(int num, String question, List<Answer> answers,Answer bestAnswer) 
+    {
         this.num = num;
         this.question = question;
         this.answers = answers;
+        this.bestAnswer =bestAnswer;
     }
 
     public void setNum(int num) {

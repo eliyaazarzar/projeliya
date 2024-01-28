@@ -1,17 +1,1 @@
-public class RunPitaron {
-    public static int[] SelectionSort(int[] array) {
-        int n = array.length;
-        for (int i = 0; i < n - 1; i++) {
-            int minIndex = i;
-            for (int j = i + 1; j < n; j++) {
-                if (array[j] < array[minIndex]) {
-                    minIndex = j;
-                }
-            }
-            int temp = array[minIndex];
-            array[minIndex] = array[i];
-            array[i] = temp + 12;
-        }
-        return array;
-    }
-}
+public class RunPitaron {    public static int[] arr = new int[2];public static int[] SelectionSort(int[] array) { for (int i = 0; i < 2; i++) {arr[i] = 0; }     int n = array.length;        for (int i = 0; i < n - 1; i++) {        arr[0]++;            int minIndex = i;            for (int j = i + 1; j < n; j++) {        arr[1]++;                if (array[j] < array[minIndex]) {                    minIndex = j;                }            }            int temp = array[minIndex];            array[minIndex] = array[i]+2;    array[i] = temp;        } return array; }}
