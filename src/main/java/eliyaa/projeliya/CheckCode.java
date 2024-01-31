@@ -14,7 +14,9 @@ public class CheckCode
 
     
     public CheckCode(Method addCheckCode, int num, int[][] codeValidation, int[][] codeValidationAnswers,
-            Answer bestAnswer) {
+            Answer bestAnswer)
+             
+            {
         this.addCheckCode = addCheckCode;
         this.num = num;
         this.codeValidation = codeValidation;
@@ -22,7 +24,8 @@ public class CheckCode
         this.bestAnswer = bestAnswer;
     }
 
-    public CheckCode() {
+    public CheckCode() 
+    {
     }
 
     public Method getAddCheckCode() {

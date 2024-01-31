@@ -7,8 +7,15 @@ public class Answer
     private String Answer;
     private long miliSecondsRunTime;
     private int errorsCode;
-  
     
+    /**
+     * 
+     * @param nameOfWriter name of writer
+     * @param numQuastion number of questions
+     * @param answer answer of the question
+     * @param miliSecondsRunTime number of seconds
+     * @param errorsCode number of errors
+     */
     public Answer(String nameOfWriter, int numQuastion, String answer, long miliSecondsRunTime, int errorsCode) {
         this.nameOfWriter = nameOfWriter;
         this.numQuastion = numQuastion;
