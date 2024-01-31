@@ -41,7 +41,7 @@ public class HomeService {
     private int testPassed = 0;
     private int numOfItrations = 100000;
     private int numOfItrationsSort = 100;
-
+    private String codeForFronted; 
     private int index = 0;
     private int sizeOfArrFunc = 0;
     private int incAndDec = 0;
@@ -100,12 +100,25 @@ public class HomeService {
         String className = "RunPitaron";
         String fileName = className + ".java";
         String readyCode = processCode(cleanedMethod2);
-        biuldFile(fileName, processCode(cleanedMethod2));
+        Thread thread3 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    System.out.println("Thread build the func start");
+                    biuldFile(fileName, processCode(cleanedMethod2));
+                    System.out.println("Thread build end!");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread3.start();
         // Compile the source file
-        int compileResult = compileAndRunJavaFile(className, readyCode);
+        int compileResult = compileAndRunJavaFile(className, cleanedMethod2);
         System.out.println("Compilation result: " + compileResult);
 
         if (compileResult == 0) {
+            System.out.println("the compile successfull");
             compile = true;
             // add(new H1(index + ":Compilation result: Sucssesfull"));
             Files.createDirectories(filePath.getParent());
@@ -180,8 +193,7 @@ public class HomeService {
                         System.out.println("Thread1 start");
                         testPassed = runTestsAndCalculateSuccessRate(method);
                         System.out.println("Thread1 end!");
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -199,8 +211,7 @@ public class HomeService {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         return;
-                    } 
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -210,25 +221,24 @@ public class HomeService {
             runtime.gc(); // Explicitly calling garbage collector to clean up memory
             try {
                 Instant start = Instant.now(); // שמירת הזמן הנוכחי
-            
+
                 thread2.start();
-            
+
                 Thread.sleep(10000); // לדוגמה, שהשהייה תהיה של 5 שניות
 
-            
                 // בדיקה אם הזמן חרף את ה-10 שניות
                 if (Duration.between(start, Instant.now()).toSeconds() >= 10) {
                     System.out.println("im here intruupt!");
                     thread.interrupt();
 
-                }else{
+                } else {
                     System.out.println("thread end before the interrupt");
                 }
-            
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }       
-                 theEffectiveMemory = runtime.totalMemory() - runtime.freeMemory();
+            }
+            theEffectiveMemory = runtime.totalMemory() - runtime.freeMemory();
             System.out.println("Time taken by the Client method: " + clientTime + " Seconds");
             System.out.println("Memory used by the Client method: " + theEffectiveMemory + " bytes");
             // Executing the second method and measuring its memory usage
@@ -247,28 +257,25 @@ public class HomeService {
             // Check time efficiency
             // Assuming theEffectiveTime and clientTime are variables representing time in
             // some unit
-            System.out.println("time score is "+timeScore);
-            if(clientTime == 0 )
-            {
-                    timeScore =0;
+            System.out.println("time score is " + timeScore);
+            if (clientTime == 0 || clientTime > 15) {
+                timeScore = 0;
 
-            }else{
-            if (theEffectiveTime >= clientTime - 0.5) {
-                timeScore = 100;
-            } 
-            else
-             {
-                timeDifference = (long) (clientTime - theEffectiveTime);
-
-                if (timeDifference > 1000) {
-                    // If the time difference is significant
-                    System.out.println("time score:" + timeScore);
-                    timeScore = 10;
+            } else {
+                if (theEffectiveTime >= clientTime - 0.5) {
+                    timeScore = 100;
                 } else {
-                    timeScore = (int) ((1000 - timeDifference) * 40 / 1000.0);
+                    timeDifference = (long) (clientTime - theEffectiveTime);
+
+                    if (timeDifference > 1000) {
+                        // If the time difference is significant
+                        System.out.println("time score:" + timeScore);
+                        timeScore = 10;
+                    } else {
+                        timeScore = (int) ((1000 - timeDifference) * 40 / 1000.0);
+                    }
                 }
             }
-        }
 
             if (theEffectiveMemory >= memoryClient || theEffectiveMemory >= memoryClient - 200) {
                 memoryScore = 100;
@@ -294,79 +301,79 @@ public class HomeService {
                 stepsScore = 100;
             } else if (stepsForClient - efectiveFuncSteps + 1000 > 0) {
                 stepsScore = 0;
+            } else {
+                stepsScore = Math.min((stepsForClient - efectiveFuncSteps) / stepsForClient < 100000 ? 10 : 10000, 0);
             }
+
+            // Get a score from chatGPT
+            String resultString;
+            int chatGptScore = 0;
+            try {
+                resultString = chatGPT(truncateMessage(cleanCode(
+                        "Give me a score from 10 to 100 (when you respond The goal of the code I'm sending you should be a sorted array, if it doesn't do that, deduct it from the score according to your opinion, provide only the score without explanations or words, just the number). Rate this function based on efficiency, code integrity, and memory usage. "
+                                + cleanedMethod2),
+                        4096));
+                System.out.println("---" + resultString + "---");
+                chatGptScore = Integer.parseInt(resultString);
+            } catch (Exception e) {
+                // Handle the exception, you can log it or perform other actions as needed
+                e.printStackTrace(); // This will print the exception details to the console
+                resultString = "Error occurred"; // You might want to provide a default result in case of an error
+                chatGptScore = 0;
+            }
+
+            System.out.println(timeScore + "timeScore");
+            timeWeighted = timeScore * 0.1;
+            System.out.println("timeWeighted: " + timeWeighted);
+            memoryWeighted = memoryScore * 0.1;
+            successRateWeighted = successRate * 0.3;
+            stepsScoreWeighted = stepsScore * 0.4;
+            chatGptScoreWeighted = chatGptScore * 0.1;
+
+            System.out.println("timeScore after multiplication by 0.1: " + timeWeighted);
+            System.out.println("memoryScore after multiplication by 0.2: " + memoryWeighted);
+            System.out.println("successRate after multiplication by 0.3: " + successRateWeighted);
+            System.out.println("stepsScore after multiplication by 0.3: " + stepsScoreWeighted);
+            System.out.println("chatGptScore after multiplication by 0.1: " + chatGptScoreWeighted);
+            double combinedScore = 0.0;
+            combinedScore = ((timeScore * 0.1) + (memoryScore * 0.1) + (successRate * 0.4) + (stepsScore * 0.3)
+                    + (chatGptScore * 0.1)) / 10;
+            System.out.println("testPassed: " + testPassed);
+            if (testPassed < 5) {
+                System.out.println("im here!");
+                successRateWeighted = 0.0;
+                chatGptScoreWeighted = 0.5;
+                stepsScoreWeighted = 0.5;
+                memoryWeighted = 0.5;
+                timeWeighted = 0.5;
+                System.out.println(timeWeighted);
+                System.out.println(memoryWeighted);
+                System.out.println(chatGptScoreWeighted);
+                System.out.println(stepsScoreWeighted);
+                System.out.println(successRateWeighted);
+                combinedScore = 2.0;
+                return combinedScore;
+            }
+
+            // Display the grade
+            System.out.println("The grade of your method is: " + String.format("%.1f", combinedScore));
+
+            // Add the grade to the UI
+            if (combinedScore > 0) {
+                return combinedScore;
+                // add(new H2("The grade of your method is: " + String.format("%.1f",
+                // combinedScore)));
+            } else {
+                return 0.0;
+            }
+
         } else {
-            stepsScore = Math.min((stepsForClient - efectiveFuncSteps) / stepsForClient < 100000 ? 10 : 10000, 0);
+            compile = false;
+            System.out.println("Compilation failed. Cannot execute the method.");
+            System.out.println("the grade is:1");
+            double returnErrorFalse = 0.0;
+            return returnErrorFalse;
         }
-        // Get a score from chatGPT
-        String resultString;
-        int chatGptScore = 0;
-        try {
-            resultString = chatGPT(truncateMessage(cleanCode(
-                    "Give me a score from 10 to 100 (when you respond The goal of the code I'm sending you should be a sorted array, if it doesn't do that, deduct it from the score according to your opinion, provide only the score without explanations or words, just the number). Rate this function based on efficiency, code integrity, and memory usage. "
-                            + cleanedMethod2),
-                    4096));
-            System.out.println("---" + resultString + "---");
-            chatGptScore = Integer.parseInt(resultString);
-        } catch (Exception e) {
-            // Handle the exception, you can log it or perform other actions as needed
-            e.printStackTrace(); // This will print the exception details to the console
-            resultString = "Error occurred"; // You might want to provide a default result in case of an error
-            chatGptScore = 0;
-        }
-
-        System.out.println(timeScore +"timeScore");
-        timeWeighted = timeScore * 0.1;
-        System.out.println("timeWeighted: " + timeWeighted);
-        memoryWeighted = memoryScore * 0.1;
-        successRateWeighted = successRate * 0.3;
-        stepsScoreWeighted = stepsScore * 0.4;
-        chatGptScoreWeighted = chatGptScore * 0.1;
-
-        System.out.println("timeScore after multiplication by 0.1: " + timeWeighted);
-        System.out.println("memoryScore after multiplication by 0.2: " + memoryWeighted);
-        System.out.println("successRate after multiplication by 0.3: " + successRateWeighted);
-        System.out.println("stepsScore after multiplication by 0.3: " + stepsScoreWeighted);
-        System.out.println("chatGptScore after multiplication by 0.1: " + chatGptScoreWeighted);
-
-        double combinedScore = ((timeScore * 0.1) + (memoryScore * 0.1) + (successRate * 0.4) + (stepsScore * 0.3)
-                + (chatGptScore * 0.1)) / 10;
-        if (testPassed < 5) {
-            System.out.println("im here!");
-            successRateWeighted = 0.0;
-            chatGptScoreWeighted = 0.5;
-            stepsScoreWeighted = 0.5;
-            memoryWeighted = 0.5;
-            timeWeighted = 0.5;
-            System.out.println(timeWeighted);
-            System.out.println(memoryWeighted);
-            System.out.println(chatGptScoreWeighted);
-            System.out.println(stepsScoreWeighted);
-            System.out.println(successRateWeighted);
-
-            combinedScore = 2;
-            return combinedScore;
-
-        }
-        // Display the grade
-        System.out.println("The grade of your method is: " + String.format("%.1f", combinedScore));
-
-        // Add the grade to the UI
-        if (combinedScore > 0) {
-            return combinedScore;
-            // add(new H2("The grade of your method is: " + String.format("%.1f",
-            // combinedScore)));
-        } else if (testPassed > 5) {
-            combinedScore = 4;
-            return combinedScore;
-            // add(new H2("The grade of your method is: 4"));
-
-        }
-        compile = false;
-        System.out.println("Compilation failed. Cannot execute the method.");
-        System.out.println("the grade is:1");
-        return 0;
-
     }
 
     public int returnStepsForClient(Method method, int numIterations) throws IllegalAccessException,
