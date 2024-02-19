@@ -9,6 +9,7 @@ import 'Frontend/generated/jar-resources/buttonFunctions.js';
 import '@vaadin/app-layout/src/vaadin-drawer-toggle.js';
 import '@vaadin/avatar/src/vaadin-avatar.js';
 import '@vaadin/avatar-group/src/vaadin-avatar-group.js';
+import '@vaadin/charts/src/vaadin-chart.js';
 import '@vaadin/checkbox/src/vaadin-checkbox.js';
 import '@vaadin/checkbox-group/src/vaadin-checkbox-group.js';
 import '@vaadin/combo-box/src/vaadin-combo-box.js';

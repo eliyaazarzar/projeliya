@@ -15,14 +15,12 @@ public class CheckCode
     
     public CheckCode(Method addCheckCode, int num, int[][] codeValidation, int[][] codeValidationAnswers,
             Answer bestAnswer)
-             
-            {
-        this.addCheckCode = addCheckCode;
+{        this.addCheckCode = addCheckCode;
         this.num = num;
         this.codeValidation = codeValidation;
         this.codeValidationAnswers = codeValidationAnswers;
         this.bestAnswer = bestAnswer;
-    }
+}
 
     public CheckCode() 
     {

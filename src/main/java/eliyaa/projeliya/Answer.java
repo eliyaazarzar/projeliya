@@ -5,9 +5,7 @@ public class Answer
     private String nameOfWriter;
     private int numQuastion;
     private String Answer;
-    private long miliSecondsRunTime;
-    private int errorsCode;
-    
+    private double grade;    
     /**
      * 
      * @param nameOfWriter name of writer
@@ -16,12 +14,11 @@ public class Answer
      * @param miliSecondsRunTime number of seconds
      * @param errorsCode number of errors
      */
-    public Answer(String nameOfWriter, int numQuastion, String answer, long miliSecondsRunTime, int errorsCode) {
+    public Answer(String nameOfWriter, int numQuastion, String answer, double grade) {
         this.nameOfWriter = nameOfWriter;
         this.numQuastion = numQuastion;
         Answer = answer;
-        this.miliSecondsRunTime = miliSecondsRunTime;
-        this.errorsCode = errorsCode;
+        this.grade = grade;
     }
     public int getNumQuastion() {
         return numQuastion;
@@ -34,18 +31,6 @@ public class Answer
     }
     public void setAnswer(String answer) {
         Answer = answer;
-    }
-    public long getMiliSecondsRunTime() {
-        return miliSecondsRunTime;
-    }
-    public void setMiliSecondsRunTime(long miliSecondsRunTime) {
-        this.miliSecondsRunTime = miliSecondsRunTime;
-    }
-    public int getErrorsCode() {
-        return errorsCode;
-    }
-    public void setErrorsCode(int errorsCode) {
-        this.errorsCode = errorsCode;
     }
     public String getNameOfWriter() {
         return nameOfWriter;

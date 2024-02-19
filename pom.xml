@@ -23,10 +23,12 @@
 			<groupId>io.joern</groupId>
 			<artifactId>javaparser-core</artifactId>
 			<version>3.24.3-SL3</version>
+ 			</dependency>
+	<dependency>
+    <groupId>com.vaadin</groupId>
+    <artifactId>vaadin-charts-flow</artifactId>
 		</dependency>
-
-
-		<dependency>
+			<dependency>
 			<groupId>com.github.javaparser</groupId>
 			<artifactId>javaparser-parent</artifactId>
 			<version>3.25.8</version>
