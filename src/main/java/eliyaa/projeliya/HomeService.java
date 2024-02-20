@@ -158,6 +158,8 @@ public class HomeService {
             Thread manyStepsThread = getGradeForSteps();
             manyStepsThread.start();
             boolean result = countTime(manyStepsThread, timeForSteps);
+            System.out.println("------------------  get res ended! ------------------");
+
             System.out.println("result: " + result);
             if (result) {
                 System.out.println("Thread finished before the maximum time.");
@@ -169,6 +171,7 @@ public class HomeService {
             Runtime runtime = Runtime.getRuntime();
             runtime.gc();
             runManyThread.start();
+            System.out.println("------------------  get res started! ------------------");
             boolean resultForTimeScore = countTime(runManyThread, timeForTimeAndMemory);
             long memoryClient = runtime.totalMemory() - runtime.freeMemory();
             System.out.println("------------------  get res Ended! ------------------");
@@ -366,9 +369,8 @@ public class HomeService {
 
         // Create and return a new Thread
         return new Thread(() -> {
-            System.out.println("Thread start");
             try {
-                System.out.println("im here");
+            System.out.println("Thread start run Multiple");
                 returnMethodMultipleTimes(method, randomArray);
                 System.out.println("finished");
             } catch (Exception e) {
@@ -402,7 +404,8 @@ public class HomeService {
         return thread;
     }
 
-    public static Boolean countTime(Thread thread, long maxTimeInMillis) {
+    public static Boolean countTime(Thread thread, long maxTimeInMillis) 
+    {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         boolean[] result = new boolean[1];
         executor.execute(() -> {
