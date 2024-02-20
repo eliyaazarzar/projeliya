@@ -4,10 +4,11 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "Questions")
-public class Question {   
-    @Id
-    private Long id;
+@Document(collection = "questions")
+public class Question 
+{   
+
+    private Long id;  
     // תוכן השאלה
     private String question;
     // רשימה של כל התשובות
@@ -20,6 +21,9 @@ public class Question {
         this.question = question;
         this.answers = answers;
         this.bestAnswer = bestAnswer;
+    }
+
+    public Question() {
     }
 
     public void setId(Long num) {
