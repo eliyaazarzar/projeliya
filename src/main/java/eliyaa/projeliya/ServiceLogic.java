@@ -18,11 +18,13 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Date;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -42,12 +44,14 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.server.VaadinSession;
 
 import org.springframework.data.mongodb.core.aggregation.DateOperators.Millisecond;
 import org.springframework.stereotype.Service;
 
 @Service
-public class HomeService {
+public class ServiceLogic {
     private static Thread previousThread = null;
     private int testPassed = 0;
     private int numOfIterations = 50000;
@@ -89,25 +93,22 @@ public class HomeService {
     private int timeForTimeAndMemory = 8000;
     private String resultStringGpt;
     private ExecutorService executor;
-
-    public HomeService() {
-
-    }
-
+    private QuestionService questionService;
     private HomeRepository Repo;
-
-    public HomeService(HomeRepository repo) {
-
+    private Button addMySoultion;
+    public ServiceLogic(HomeRepository repo,QuestionService questionService) 
+    {
+        this.questionService = questionService;
         this.Repo = repo;
-
         executor = Executors.newCachedThreadPool();
-
     }
 
-    public double checkAnswer(String methodcode2, String NameOfFunc)
+    public double checkAnswer(String methodcode2, String NameOfFunc,String questionNum)
             throws IOException, ClassNotFoundException, NoSuchMethodException,
             SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-            NoSuchFieldException, InterruptedException {
+            NoSuchFieldException, InterruptedException 
+            {
+
         executor = Executors.newCachedThreadPool();
         cleanedMethod2 = cleanCode(methodcode2);
         System.out.println(cleanedMethod2 + "the code clean");
@@ -252,8 +253,19 @@ public class HomeService {
             System.out.println("testPassed: " + testPassed);
 
             // Display the grade
-            System.out.println("The grade of your method is: " + String.format("%.1f", combinedScore));
+                    String username = (String) VaadinSession.getCurrent().getAttribute("user");
 
+            System.out.println("The grade of your method is: " + String.format("%.1f", combinedScore));
+            // if (combinedScore > 7.5) {
+            //     System.out.println("came to here");
+            //   Long num =  Long.parseLong(questionNum);
+            //   int numInt =  Integer.parseInt(questionNum);
+            //     Answer t = new Answer(username , numInt, cleanedMethod2 + "", combinedScore, new Date(timeDifference), 0);
+            //     System.out.println(num);
+            //     addToList(t,num);
+                
+            // }
+            
             // Add the grade to the UI
             if (combinedScore > 0) {
                 return combinedScore;
@@ -268,6 +280,10 @@ public class HomeService {
             double returnErrorFalse = 0.0;
             return returnErrorFalse;
         }
+    }
+
+    private void addToList(Answer t, Long num) {
+        questionService.addToList(t, num);
     }
 
     public void calculateAndPrintSteps(Method method, int numOfIterationsSorted) throws IllegalAccessException,
@@ -956,11 +972,11 @@ public class HomeService {
     }
 
     public static void setArrForFunc(int[] arrForFunc) {
-        HomeService.arrForFunc = arrForFunc;
+        ServiceLogic.arrForFunc = arrForFunc;
     }
 
     public static void setSuccessRate(double successRate) {
-        HomeService.successRate = successRate;
+        ServiceLogic.successRate = successRate;
     }
 
     public void setTimeWeighted(double timeWeighted) {
@@ -1040,7 +1056,7 @@ public class HomeService {
     }
 
     public static void setMethod(Method method) {
-        HomeService.method = method;
+        ServiceLogic.method = method;
     }
 
     public void setRepo(HomeRepository repo) {

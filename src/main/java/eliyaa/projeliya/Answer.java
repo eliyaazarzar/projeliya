@@ -2,17 +2,25 @@ package eliyaa.projeliya;
 
 import java.util.Date;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 public class Answer {
     private int AnswerNumber = 0;
     private String nameOfWriter;
-    private int numQuastion;
+    private int numQuestion;
     private String Answer;
     private Date answerDate;
     private double grade;
 
+    public Answer() {
+    }
+    public Answer(String Answer) {
+        this.Answer = Answer;
+    }
+  
     public Answer(String nameOfWriter, int numQuastion, String answer, double grade, Date date, int counterOfTheList) {
         this.nameOfWriter = nameOfWriter;
-        this.numQuastion = numQuastion;
+        this.numQuestion = numQuastion;
         this.Answer = answer;
         this.grade = grade;
         this.answerDate = date;
@@ -43,12 +51,12 @@ public class Answer {
         this.grade = grade;
     }
 
-    public int getNumQuastion() {
-        return numQuastion;
+    public int getNumQuestion() {
+        return numQuestion;
     }
 
-    public void setNumQuastion(int numQuastion) {
-        this.numQuastion = numQuastion;
+    public void setNumQuestion(int numQuastion) {
+        this.numQuestion = numQuastion;
     }
 
     public String getAnswer() {

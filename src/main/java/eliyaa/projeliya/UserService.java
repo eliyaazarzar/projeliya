@@ -1,50 +1,85 @@
 package eliyaa.projeliya;
 
-
 import java.util.ArrayList;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService
+public class UserService 
 {
     private UserRepository usersRepo;
 
-    public UserService(UserRepository usersRepo)
-    {
+    public UserService(UserRepository usersRepo) {
         this.usersRepo = usersRepo;
     }
+   
+    public boolean existsByName(String id) {
+        return usersRepo.existsById(id);
 
-    // Create new user
-    public boolean addUser(User user)
+
+    }
+    private Boolean login(String id , String password)
     {
-        User insertedUser = null;
-        try
+        Optional<User> user = usersRepo.findById(id);
+        User userExists =  user.isPresent() ? user.get() : null;
+
+        if (userExists!= null && userExists.getPassword().equals(password) ) 
         {
-            insertedUser = usersRepo.insert(user); // insert new user into mongoDB
+            System.out.println("the password is" + userExists.getPassword());
+            return true;
         }
-        catch (Exception e)
+        return false;
+    }
+    public void saveUser(User user)
+    {
+        usersRepo.save(user);
+    }
+    public Boolean updateUser(User user,String password,String newPassword) 
+    {
+       boolean flag =  login(user.getId(),password);
+       System.out.println("flag:"+flag);
+        if(flag == true)
         {
+        user.setPassword(newPassword);
+        usersRepo.save(user);
+            return true;
+        }
+    return false;
+    }
+
+    // Create new user if not already exists
+    public boolean addUser(User user) {
+        // Check if the user already exists
+        if (usersRepo.existsById(user.getId())) {
+            // User already exists, return false
+            return false;
+        }
+
+        // User does not exist, proceed to insert
+        try {
+            usersRepo.insert(user); // insert new user into MongoDB
+            return true;
+        } catch (Exception e) {
             System.out.println("UserService.addUser() Error! " + e.getMessage());
+            return false;
         }
-        // System.out.println("==========> insertedUser="+insertedUser);
-        return insertedUser == null ? false : true;
     }
 
     // Read all users
-    public ArrayList<User> getAllUsers()
-    {
-        return (ArrayList<User>)usersRepo.findAll();
+    public ArrayList<User> getAllUsers() {
+        return (ArrayList<User>) usersRepo.findAll();
     }
 
-    public User getUserByID(Long unID)
+    public User getUserByID(String id) 
     {
-        return usersRepo.findById(unID).get();
+        Optional<User> user = usersRepo.findById(id);
+        User userExists =  user.isPresent() ? user.get() : null;
+        return userExists;
     }
 
     // Delete user by ID
-    public void deleteUserByID(Long unID)
-    {
-        usersRepo.deleteById(unID);
+    public void deleteUserByID(String id) {
+        usersRepo.deleteById(id);
     }
 }

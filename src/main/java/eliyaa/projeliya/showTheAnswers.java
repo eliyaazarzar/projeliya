@@ -1,77 +1,73 @@
 package eliyaa.projeliya;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
-
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
-
+import java.util.Map;
 @Route("/show")
 public class showTheAnswers extends VerticalLayout {
     private final QuestionService questionService;
-    private List<Answer> currentAnswers;
+    private final Grid<Answer> answersGrid;
 
-    public showTheAnswers(QuestionService questionService) 
-    {
+    public showTheAnswers(QuestionService questionService, UserService userService) {
         this.questionService = questionService;
-        this.currentAnswers = new ArrayList<>();
-
-        // Create form components for adding a new question
-        TextField questionField = new TextField("Question");
-        TextField answerField = new TextField("Answer");
-        Button addAnswerButton = new Button("Add Answer", event -> {
-            String answerContent = answerField.getValue();
-            if (!answerContent.isEmpty()) {
-                currentAnswers.add(new Answer("eliya", 1, answerContent, 10.0, new Date(), currentAnswers.size() + 1));
-                System.out.println("add Answer!");
-                answerField.clear(); // Clear the answer field after adding
-            }
+        this.answersGrid = new Grid<>(Answer.class);
+        // Set up grid configuration
+        answersGrid.setColumns("nameOfWriter", "numQuestion", "answer", "grade");
+        answersGrid.asSingleSelect().addValueChangeListener(event -> {
+            showAnswerDetails(event.getValue());
         });
-        Button addQuestionButton = new Button("Add Question", event -> {
-            String questionContent = questionField.getValue();
-            if (!questionContent.isEmpty() && !currentAnswers.isEmpty()) {
-                // Create new question with the provided content and answers
-                Question newQuestion = new Question();
-                newQuestion.setQuestion(questionContent);
-                newQuestion.setAnswers(currentAnswers);
-                questionService.addQuestion(newQuestion);
-                System.out.println("Add question!");
-
-                currentAnswers.clear(); // Clear the list of current answers
-                refreshQuestions(); // Refresh the displayed questions after adding a new one
-                questionField.clear(); // Clear the question field after adding
-            }
-        });
-
-        // Add form components to the layout
-        add(questionField, answerField, addAnswerButton, addQuestionButton);
-
-        // Display existing questions and their answers
-        int counter = 0;
-        counter++;
-        System.out.println(" counter = " + counter);
-        if(counter == 2)
-        {
-
-        }
+        
+        add(new H1("All the Answers of the Question!"), answersGrid);
+        refreshQuestions();
     }
-
     private void refreshQuestions() {
-        removeAll(); // Clear existing components before displaying updated questions
         List<Question> questions = questionService.getAllQuestions();
+        Map<String, List<Answer>> groupedAnswers = new LinkedHashMap<>();
+        int answerCounter = 1; // Initialize answerCounter
+    
+        // Group answers by question topics
         for (Question question : questions) {
-            H1 questionHeader = new H1(question.getQuestion());
-            add(questionHeader);
-
-            // Add answers for the question
+            String topic = question.getQuestion();
             List<Answer> answers = question.getAnswers();
+    
+            // Set question number for each answer
             for (Answer answer : answers) {
-                add(new H1(answer.getAnswer())); // Assuming getContent() returns the answer content
+                answer.setAnswerNumber(answerCounter);  // Set answer number for each answer
+                answer.setNumQuestion( question.getId().intValue()); // Set numQuestion to the question's number
+                answerCounter++;
             }
+            groupedAnswers.put(topic, answers);
         }
+    
+        // Prepare data for grid
+        List<Answer> allAnswers = new ArrayList<>();
+        for (List<Answer> answers : groupedAnswers.values()) {
+            allAnswers.addAll(answers);
+        }
+        // Set the data provider for the grid
+        answersGrid.setItems(allAnswers);
+    }
+    
+    
+    
+    private void showAnswerDetails(Answer answer) {
+        Dialog dialog = new Dialog();
+        dialog.add(new H1("Answer Details"));
+        dialog.add(new H1("Name of Writer: " + answer.getNameOfWriter()));
+        dialog.add(new H1("Question Number: " + answer.getNumQuestion()));
+        dialog.add(new H1("Answer Number: " + answer.getAnswerNumber())); // Display answerNumber instead of numQuestion
+        dialog.add(new H1("Answer: " + answer.getAnswer()));
+        dialog.add(new H1("Grade: " + answer.getGrade()));
+
+        Button closeButton = new Button("Close", event -> dialog.close());
+        dialog.add(closeButton);
+        dialog.open();
     }
 }
