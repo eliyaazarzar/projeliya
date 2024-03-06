@@ -9,7 +9,9 @@ import com.vaadin.flow.component.html.H6;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
+
 import projeliya.ver2.projeliya.SolutionService.SoultionsChangeListner;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,7 +28,18 @@ public class showTheAnswers extends VerticalLayout
     private Button deleteSolution;
     public showTheAnswers(QuestionService questionService, UserService userService,SolutionService solutionService) {
         String user = (String) VaadinSession.getCurrent().getAttribute("user");
-      
+    
+        solutionService.addSoulitonChangeListener(new SoultionsChangeListner() {
+            @Override
+           
+            public void onChange() {
+               UI ui = getUI().orElseThrow();
+               ui.access(() -> refreshSoultions());
+               String msg = "\n---> " + user;
+               System.out.println(msg);
+            }
+        });
+             
         this.solutionService = solutionService;
         this.questionService = questionService;
         this.SolutionGrid = new Grid<>();
@@ -60,25 +73,12 @@ public class showTheAnswers extends VerticalLayout
       
         add(new H1("All the Answers of the Question!"), SolutionGrid);
         refreshSoultions();    
-        solutionService.addSoulitonChangeListener(new SoultionsChangeListner() {
-            @Override
-            public void onChange() {
-               UI ui = getUI().orElseThrow();
-               if(ui ==  null) {
-                System.out.println("UI IS NULL");
-            }
-               ui.access(() -> refreshSoultions());
-               String msg = "\n---> " + user;
-               System.out.println(msg);
-            }
-        });
-           
+    
         add(deleteSolution);
     }
 
     private void deleteSolution() 
     {
-
         Solution selectedSolution = SolutionGrid.asSingleSelect().getValue();
         solutionService.deleteSolution(selectedSolution.getId());
         refreshSoultions();

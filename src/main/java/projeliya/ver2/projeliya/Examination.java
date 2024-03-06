@@ -17,9 +17,33 @@ public class Examination
     private double timeEffectiveAction;
     private double MemoryEffectiveAction;
     private String runTime;
-    
+    private String runAvergeTime;
     public Examination() {
     }
+    
+    public Examination(String id, int[][] arr, List<String> explainTheArrays, double timeEffectiveAction,
+            double memoryEffectiveAction, String runTime, String runAvergeTime) {
+        this.id = id;
+        this.arr = arr;
+        this.explainTheArrays = explainTheArrays;
+        this.timeEffectiveAction = timeEffectiveAction;
+        MemoryEffectiveAction = memoryEffectiveAction;
+        this.runTime = runTime;
+        this.runAvergeTime = runAvergeTime;
+    }
+
+    public void setRunTime(String runTime) {
+        this.runTime = runTime;
+    }
+
+    public String getRunAvergeTime() {
+        return runAvergeTime;
+    }
+
+    public void setRunAvergeTime(String runAvergeTime) {
+        this.runAvergeTime = runAvergeTime;
+    }
+
     public Examination(String id, int[][] arr, List<String> explainTheArrays, double timeEffectiveAction,
             double memoryEffectiveAction, String runTime) {
         this.id = id;

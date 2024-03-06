@@ -1,24 +1,17 @@
 package projeliya.ver2.projeliya;
 
-import com.mongodb.internal.logging.StructuredLogMessage.Component;
-import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H6;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -29,19 +22,11 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
-import com.vaadin.flow.theme.lumo.LumoUtility;
-import com.vaadin.flow.theme.lumo.LumoUtility.TextAlignment;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.tomcat.jni.Pool;
-import org.springframework.expression.spel.ast.Selection;
 
 @PageTitle("ChackYourCode")
 @Route("/ChackYourCode")
@@ -81,8 +66,10 @@ public class CheckYourCodePage extends VerticalLayout {
     private Button showTheDialog;
     ProgressBar progressBar;
     private SolutionService solutionService;
-    public CheckYourCodePage( SolutionService solutionService,ServiceLogic service, QuestionService questionService) throws UnknownHostException
- {
+    public Dialog dialogForIndicate;
+
+    public CheckYourCodePage(SolutionService solutionService, ServiceLogic service, QuestionService questionService)
+            throws UnknownHostException {
         this.solutionService = solutionService;
         questionTitle = new H1("בחר שאלה שאתה רוצה לפתור");
         questionTitle.getStyle().set("align-self", "flex-end");
@@ -97,20 +84,17 @@ public class CheckYourCodePage extends VerticalLayout {
 
         String user = (String) VaadinSession.getCurrent().getAttribute("user");
 
-        if(user == null) 
-        {
+        if (user == null) {
             System.out.println("-------- User NOT Authorized - can't use chat! --------");
             UI.getCurrent().getPage().setLocation("/"); // Redirect to login page (HomePage).
-            return;        
+            return;
         }
         addSoultion.addClickListener(event -> {
             Solution solution = listOfSoulotins.get(index);
             openUploadAnswerDialog(solution);
         });
 
-
-        hideExplaintion.addClickListener(event -> 
-        {
+        hideExplaintion.addClickListener(event -> {
             clearAll();
         });
 
@@ -119,8 +103,11 @@ public class CheckYourCodePage extends VerticalLayout {
         // in
         // return;
         // }
+        dialogForIndcate = new Dialog();
         progressBar = new ProgressBar();
         progressBar.setIndeterminate(true);
+        dialogForIndcate.add(progressBar);
+
         topBar = new HorizontalLayout();
         topBar.setWidthFull(); // Set the width to full to occupy the entire width of the page
         topBar.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Align components to the end (right)
@@ -149,7 +136,6 @@ public class CheckYourCodePage extends VerticalLayout {
         centerLayout.setJustifyContentMode(JustifyContentMode.CENTER); // Center its content vertically
         centerLayout.setAlignItems(Alignment.CENTER); // Center its content horizontally
 
-        notification = new Notification("", 3000); // Notification will disappear after 3 seconds
 
         respond = new H2();
         // Adjust the width as needed
@@ -166,16 +152,15 @@ public class CheckYourCodePage extends VerticalLayout {
         List<String> complationList = new ArrayList<>();
         List<String> timeScore = new ArrayList<>();
         grid.setWidth("1350px"); // להגדיר רוחב הגריד ל-400 פיקסלים
-        
-        showTheDialog =  new Button("ShowTheReport",event->{
+
+        showTheDialog = new Button("ShowTheReport", event -> {
             gridClass item = grid.asSingleSelect().getValue();
-            if (item != null) 
-            {
+            if (item != null) {
                 showSoultionDetails(item.getCounter() - 1);
             }
         });
         showTheDialog.setEnabled(false);
-        horizontalLayoutButton.add(textForOneChack, submitButton, hideExplaintion,showTheDialog ,addSoultion);
+        horizontalLayoutButton.add(textForOneChack, submitButton, hideExplaintion, showTheDialog, addSoultion);
         grid.addColumn(gridClass::getCounter).setHeader("");
         grid.addColumn(gridClass::getCompilation).setHeader("Compilation Result");
         grid.addColumn(gridClass::getValidationFuncsScore).setHeader("Validation Funcs");
@@ -184,7 +169,7 @@ public class CheckYourCodePage extends VerticalLayout {
         grid.addColumn(gridClass::getMemoryScore).setHeader("Memory");
         grid.addColumn(gridClass::getChatGptScore).setHeader("Chat GPT");
         grid.addColumn(gridClass::getFinalScore).setHeader("Final Score");
-      
+
         selectQuestion.addValueChangeListener(event -> {
             String selectedValue = event.getValue(); // Get the newly selected value
             try {
@@ -198,11 +183,10 @@ public class CheckYourCodePage extends VerticalLayout {
         });
         add(questionTitle);
         add(respond);
-
         horizontalLayout.add(answerTextArea);
         // לחיצת על הכפתור
         submitButton.addClickListener(event -> {
-
+            dialogForIndcate.open();
             add(centerLayout);
             try {
                 Boolean result = null;
@@ -230,13 +214,9 @@ public class CheckYourCodePage extends VerticalLayout {
                     codeOfTheClient = answerTextArea.getValue();
                     counter++;
                     System.out.println("the loading indacte Starting");
-                 //   add(progressBar);
+                        Notification.show("Your Solution got Grade!", 2000, Notification.Position.TOP_CENTER);
                     grade = service.checkAnswer(codeOfTheClient, NameOfFun, selectedQuestion);
-                  
-
-
-
-
+                    dialogForIndcate.close();
                 }
                 if (service.getCompile() && textForOneChack.isEmpty()) {
                     String formattedGrade = String.format("%.1f", grade);
@@ -328,16 +308,15 @@ public class CheckYourCodePage extends VerticalLayout {
         grid.asSingleSelect().addValueChangeListener(event -> {
             gridClass item = event.getValue();
             if (item != null) {
-            System.out.println("the dialog is true");
-            showTheDialog.setEnabled(true);
+                System.out.println("the dialog is true");
+                showTheDialog.setEnabled(true);
                 showTheExplain((item.getCounter() - 1)); // Use item directly to get the counter value
             }
         });
 
     }
 
-    private void openUploadAnswerDialog(Solution solution) 
-    {
+    private void openUploadAnswerDialog(Solution solution) {
         System.out.println("go func upload");
         if (selectQuestion.getValue() == null) {
             System.out.println("null1");
@@ -346,7 +325,7 @@ public class CheckYourCodePage extends VerticalLayout {
             System.out.println("null2");
         }
         solutionService.addSolution(solution);
-         Notification.show("the Answer is added");
+        Notification.show("the Answer is added");
 
     }
 
@@ -360,146 +339,152 @@ public class CheckYourCodePage extends VerticalLayout {
         index = indexForList;
         // Titles
         // Explanations
-        if(solution.getCompile())
-    {
-        details.append("<strong>בדיקת הידור:</strong>\n")
-                .append("בדיקה שקובעת האם הקוד עובר הידור \n");
-                if(solution.getCompile() == true)
-                {
+        if (solution.getCompile()) {
+            details.append("<strong>בדיקת הידור:</strong>\n")
+                    .append("בדיקה שקובעת האם הקוד עובר הידור \n");
+            if (solution.getCompile() == true) {
                 details.append("הבדיקה עברה בהצלחה" + checkString);
-                }
-        details.append("<hr>");
-        details.append("<strong>בדיקת תקינות של הפעולה:</strong>(30%):\n");
-        details.append(
-                "\n.הבדיקה נועדה לבדוק האם אתה מבצע את הפעולה הנדרשת בכל מצב.הבדיקה מורכבת מ 10 בדיקות של מערכים כל מערך בגודל 30 ומאוכסנים בו איברים בסדרים שיאתגרו את בניית הפונקציה שלך,אם חצי מהבדיקות נכשלו אז מבחינתי הפונקציה לא תקינה -אבל אם יותר ממחצית מהבדיקות נכונות אז בכל שגיאה יורד 10 נקודות מהציון הסופי\n");
-        if (report.getErrorsArraysExplain().size() != 0) {
-            details.append("<strong>תוצאות הבדיקה:\n </strong>\n");
-            for (int i = 0; i < report.getErrorsArraysExplain().size(); i++) {
-                details.append("לא עמדת בבדיקה מספר" + ": " + i + " אשר הייתה מורכבת מ "
-                        + report.getErrorsArraysExplain().get(i));
-                details.append(exString);
-                details.append("\n");
-
-            }
-        } else {
-            details.append("<strong>עמדת בכל הבדיקות שהיו" + checkString + "\n</strong>");
-        }
-        details.append("הסבר חישוב הציון:\n");
-        details.append("100 - " + ("(כמות הטעויות*10)") + "= הציון של הבדיקה(עדיין לא הסופי)\n");
-        details.append(" (המשקל בציון שקיבלנו מקודם * 0.3)=הציון הסופי לבדיקה הזאת\n");
-        details.append("<hr>");
-        details.append("להלן החישוב בבדיקה שלך:\n");
-        details.append("שלב ראשון בחישוב:");
-        details.append("100 - " + "(" + (100 - +solution.getGrade().getScoreValidtion()) + ") = "
-                + solution.getGrade().getScoreValidtion() + "\n");
-        details.append("שלב שני וסופי בחישוב:");
-        details.append("(" + solution.getGrade().getScoreValidtion() + " * 0.3)="
-                + solution.getGrade().getScoreValidtion() * 0.3);
-        details.append("<hr>");
-        Point[] arrPoints = report.getArrayOfPoints();
-        if(arrPoints==null)
-        {
-            
-        details.append("הפונקציה שלך לא תקינה לכן לא תבצע את שאר הבדיקות.\n");
-        details.append(" <strong> לכן יהיו רק הסברים של הבדיקות הבאות.</strong>\n\n");
-        }
-        details.append("<strong> סדר גודל של הפונקציה +דרך :</strong> (40%):\n")
-                .append("מציאת סדר גודל (זמן ריצה) של פונקציה ובדיקה האם הסדר גודל שנמצא הוא יעיל.")
-                .append("אם אכן הוא יעיל מספיק אתה תקבל 100% מהציון ואם לא אז 0% \n").append(".")
-                .append("את הסדר גודל אנחנו מוצאים על ידי מספר פעולות\n").append(".")
-                .append(".ניצור את הנקודות דרך יצירת מערכים בלולאה מ10 עד 50 (בקפיצות של 10),בכל הפעלה של הפונקציה על מערך מוציאים את מספר הצעדים הגבוה ביותר שנעשתה לאחר שיש לנו את כמות הצעדים אז יוצרים נקודות.\n")
-                .append("לאחר שמצאנו את הנקודות אפשר למצוא שיפועים ואז דרך השיפועים האלו אנחנו מוצאים את המרחקים בין שיפוע לשיפוע. ")
-                .append("(x = גודל המערך,y= מספר הצעדים שנעשו).\n")
-                .append("ולפי שלבים אלו ניתן למצוא את זמן הריצה של הפונקציה.");
-        long[] arrSlopes = report.getArrayOfSlope();
-        long[] arrDistanceOfSlopes = report.getArrayOfDistance();
-        details.append("\n<hr>");
-        if (arrPoints != null) {
-            int counter2 = 10;
-            details.append("The all Points\n");
-            for (int i = 0; i < arrPoints.length; i++) {
-                if (arrPoints[i] != null) {
-                    details.append("(" + (i + 1) + ")\n");
-                    details.append("n = " + counter2 + "\n");
-                    details.append(
-                            "the Point is: " + "(" + arrPoints[i].getX() + "= X, " + arrPoints[i].getY() + "= Y)"
-                                    + "\n");
-                    counter2 += 10;
-                }
-            }
-            details.append("\nThe all slpoes\n");
-            int counterForSlpoes = 0;
-            for (int j = 0; j < arrSlopes.length; j++) {
-                if (arrSlopes[j] != 0) {
-                    details.append("(" + (counterForSlpoes + 1) + ")");
-                    details.append("the Slope is: " + arrSlopes[j] + "\t\t");
-                    counterForSlpoes++;
-                    details.append("\n");
-                }
-            }
-            details.append("The all the distances:\n");
-            int counterDistance = 0;
-            for (int j = 0; j < arrDistanceOfSlopes.length; j++) {
-                if (arrDistanceOfSlopes[j] != 0) {
-                    details.append("(" + (counterDistance + 1) + ")\t");
-                    details.append("the Distance of Slope is: " + arrDistanceOfSlopes[j] + "\n");
-                    counterDistance++;
-                }
             }
             details.append("<hr>");
-            if (report.getRunTimeOfFunc().equals("O(1)")) {
-                details.append("רואים שהשיפועים והמרחקים שווים לאפס לכן מסיקים שזה O(1)");
+            details.append("<strong>בדיקת תקינות של הפעולה:</strong>(30%):\n");
+            details.append(
+                    "\n.הבדיקה נועדה לבדוק האם אתה מבצע את הפעולה הנדרשת בכל מצב.הבדיקה מורכבת מ 10 בדיקות של מערכים כל מערך בגודל 30 ומאוכסנים בו איברים בסדרים שיאתגרו את בניית הפונקציה שלך,אם חצי מהבדיקות נכשלו אז מבחינתי הפונקציה לא תקינה -אבל אם יותר ממחצית מהבדיקות נכונות אז בכל שגיאה יורד 10 נקודות מהציון הסופי\n");
+            if (report.getErrorsArraysExplain().size() != 0) {
+                details.append("<strong>תוצאות הבדיקה:\n </strong>\n");
+                for (int i = 0; i < report.getErrorsArraysExplain().size(); i++) {
+                    details.append("לא עמדת בבדיקה מספר" + ": " + i + " אשר הייתה מורכבת מ "
+                            + report.getErrorsArraysExplain().get(i));
+                    details.append(exString);
+                    details.append("\n");
 
-            } else if (report.getRunTimeOfFunc().equals("N")) {
-                details.append("רואים שהשיפועים שווים לכן זה O(N)");
-
-            } else if (report.getRunTimeOfFunc().equals("N^2")) {
-                details.append("לפי המרחקים שאנחנו רואים שהם שווים ושונים מאפס אז - זמן הריצה הוא N²");
-
-            } else if (report.getRunTimeOfFunc().equals("N^3")) {
-                details.append("לפי המרחקים ניתן לזהות שזמן הריצה של הפונקציה הוא :\n N³");
+                }
+            } else {
+                details.append("<strong>עמדת בכל הבדיקות שהיו" + checkString + "\n</strong>");
             }
-        }    
+            details.append("הסבר חישוב הציון:\n");
+            details.append("100 - " + ("(כמות הטעויות*10)") + "= הציון של הבדיקה(עדיין לא הסופי)\n");
+            details.append(" (המשקל בציון שקיבלנו מקודם * 0.3)=הציון הסופי לבדיקה הזאת\n");
+            details.append("<hr>");
+            details.append("להלן החישוב בבדיקה שלך:\n");
+            details.append("שלב ראשון בחישוב:");
+            details.append("100 - " + "(" + (100 - +solution.getGrade().getScoreValidtion()) + ") = "
+                    + solution.getGrade().getScoreValidtion() + "\n");
+            details.append("שלב שני וסופי בחישוב:");
+            details.append("(" + solution.getGrade().getScoreValidtion() + " * 0.3)="
+                    + solution.getGrade().getScoreValidtion() * 0.3);
+            details.append("<hr>");
+            Point[] arrPoints = report.getArrayOfPoints();
+            if (arrPoints == null) {
 
-        details.append("<hr>");
-        details.append("<strong>בדיקת יעילות בזיכרון:</strong> (10%):\n").append(
-                "בדיקה שמודדת את היעילות של הפונקציה   -פעולה לפונקציה לעשות מיון על מערך ענק(בגודל 50 אלף)  אם כמות הזיכרון שלקחה הפעולה עומד בכמות הזיכרון היעיל שהגדרנו (שאמור לקחת לפעולה הזאת). הבדיקה מקבלת 100% מהציון. ואם לא אז 0% \n");
-        details.append("חישוב הציון:\n");
-        details.append("(0.1*ציון הזיכרון)= הציון הסופי של");
-        details.append("<hr>");
-        details.append("<strong>בדיקת יעילות בפעולה:</strong>(10%):\n")
-                .append("בדיקה שמודדת את היעילות של הפונקציה   - מדידה של הזמן שלוקח לפונקציה לעשות פעולה על מערך גדול(בגודל 50 אלף).\n  .אם הזמן שלקח עד לסיום הפעולה עומד בזמן שהגדרנו לפעולה. הבדיקה מקבלת 100% מהציון,ואם לא אז 0% \n");
-        details.append("חישוב הציון:\n");
-        details.append("ציון הזמן *0.1= הציון הסופי של ");
-        // .append(report.getTimeRunTest());
-        details.append("<hr>");
-        details.append("<strong>שליחת הפונקציה אל ChatGpt: </strong>(10%):\n").append(
-                "שליחת הפונקציה שלך לצאט ");
-        details.append("לדירוג מ10 עד 100 על פי הפרמטרים לעיל.");
-        details.append("חישוב הציון:\n");
-        details.append("קבלת הציון מהצאט*0.1= הציון הסופי של ");
-        details.append("<hr>");
-        details.append("<strong>ציון סופי</strong>:\n").append("<hr>").append(
-                "חישוב הציון הסופי הוא ((" + solution.getGrade().getScoreOfTime() + " * 0.1)   +("
-                        + solution.getGrade().getScoreOfSteps() + "* 0.4) +   ("
-                        + solution.getGrade().getScoreOfMemory() + "* 0.1) + ("
-                        + solution.getGrade().getScoreOfChatGpt() + "* 0.1) + ("
-                        + solution.getGrade().getScoreValidtion() + "* 0.3)) / 10\n ="
-                        + solution.getGrade().getGrade());
-        hideExplaintion.setEnabled(true);
-        text.getElement().setProperty("innerHTML", details.toString());
-        text.getElement().getStyle().set("text-align", "right");
-        text.setText(details.toString());
-        dialog.add(text);
-        text.getStyle().set("white-space", "pre-line");
+                details.append("הפונקציה שלך לא תקינה לכן לא תבצע את שאר הבדיקות.\n");
+                details.append(" <strong> לכן יהיו רק הסברים של הבדיקות הבאות.</strong>\n\n");
+            }
+            details.append("<strong> סדר גודל של הפונקציה +דרך :</strong> (40%):\n")
+                    .append("מציאת סדר גודל (זמן ריצה) של פונקציה ובדיקה האם הסדר גודל שנמצא הוא יעיל.")
+                    .append("אם אכן הוא יעיל מספיק אתה תקבל 100% מהציון ואם לא אז 0% \n").append(".")
+                    .append("את הסדר גודל אנחנו מוצאים על ידי מספר פעולות\n").append(".")
+                    .append(".ניצור את הנקודות דרך יצירת מערכים בלולאה מ10 עד 50 (בקפיצות של 10),בכל הפעלה של הפונקציה על מערך מוציאים את מספר הצעדים הגבוה ביותר שנעשתה לאחר שיש לנו את כמות הצעדים אז יוצרים נקודות.\n")
+                    .append("לאחר שמצאנו את הנקודות אפשר למצוא שיפועים ואז דרך השיפועים האלו אנחנו מוצאים את המרחקים בין שיפוע לשיפוע. ")
+                    .append("(x = גודל המערך,y= מספר הצעדים שנעשו).\n")
+                    .append("ולפי שלבים אלו ניתן למצוא את זמן הריצה של הפונקציה.");
+            long[] arrSlopes = report.getArrayOfSlope();
+            long[] arrDistanceOfSlopes = report.getArrayOfDistance();
+            details.append("\n<hr>");
+            if (arrPoints != null) {
+                int counter2 = 10;
+                details.append("The all Points\n");
+                for (int i = 0; i < arrPoints.length; i++) {
+                    if (arrPoints[i] != null) {
+                        details.append("(" + (i + 1) + ")\n");
+                        details.append("n = " + counter2 + "\n");
+                        details.append(
+                                "the Point is: " + "(" + arrPoints[i].getX() + "= X, " + arrPoints[i].getY() + "= Y)"
+                                        + "\n");
+                        counter2 += 10;
+                    }
+                }
+                details.append("\nThe all slpoes\n");
+                int counterForSlpoes = 0;
+                for (int j = 0; j < arrSlopes.length; j++) {
+                    if (arrSlopes[j] != 0) {
+                        details.append("(" + (counterForSlpoes + 1) + ")");
+                        details.append("the Slope is: " + arrSlopes[j] + "\t\t");
+                        counterForSlpoes++;
+                        details.append("\n");
+                    }
+                }
+                details.append("The all the distances:\n");
+                int counterDistance = 0;
+                System.out.println("arr size= " + arrDistanceOfSlopes.length);
+                for (int j = 0; j < arrDistanceOfSlopes.length-1; j++) {
+                    if (arrDistanceOfSlopes[j] >= 0 ) {
+                        
+                        details.append("(" + (counterDistance + 1) + ")\t");
+                        details.append("the Distance of Slope is: " + arrDistanceOfSlopes[j] + "\n");
+                        
+                        counterDistance++;
+                        System.out.println("details Distance");
+                    }
+                }
+                details.append("<hr>");
+                if (report.getRunTimeOfFunc().equals("O(1)")) {
+                    details.append("רואים שהשיפועים והמרחקים שווים לאפס לכן מסיקים שזה O(1)");
 
-        Button closeButton = new Button("Close", event -> dialog.close());
-        dialog.add(closeButton);
-        dialog.open();
-        }else {
+                } else if (report.getRunTimeOfFunc().equals("O(N)")) {
+                    details.append("רואים שהשיפועים שווים לכן זה O(N)");
+
+                } else if (report.getRunTimeOfFunc().equals("N^2")) {
+                    details.append("לפי המרחקים שאנחנו רואים שהם שווים ושונים מאפס אז - זמן הריצה הוא N²");
+
+                } else if (report.getRunTimeOfFunc().equals("N^3")) {
+                    details.append("לפי המרחקים ניתן לזהות שזמן הריצה של הפונקציה הוא :N³\n");
+                    if(solution.getGrade().getScoreOfSteps() == 50)
+                    {
+                        details.append("אבל מיכוון שביצעת את כל הפעולה בשלמות תקבל 50 אחוז מהציון למרות שהזמן הריצה שעשית הוא לא האולטימטיבי!\n");
+
+                    }
+                }
+            }
+
+            details.append("<hr>");
+            details.append("<strong>בדיקת יעילות בזיכרון:</strong> (10%):\n").append(
+                    "בדיקה שמודדת את היעילות של הפונקציה   -פעולה לפונקציה לעשות מיון על מערך ענק(בגודל 50 אלף)  אם כמות הזיכרון שלקחה הפעולה עומד בכמות הזיכרון היעיל שהגדרנו (שאמור לקחת לפעולה הזאת). הבדיקה מקבלת 100% מהציון. ואם לא אז 0% \n");
+            details.append("חישוב הציון:\n");
+            details.append("(0.1*ציון הזיכרון)= הציון הסופי של");
+            details.append("<hr>");
+            details.append("<strong>בדיקת יעילות בפעולה:</strong>(10%):\n")
+                    .append("בדיקה שמודדת את היעילות של הפונקציה   - מדידה של הזמן שלוקח לפונקציה לעשות פעולה על מערך גדול(בגודל 50 אלף).\n  .אם הזמן שלקח עד לסיום הפעולה עומד בזמן שהגדרנו לפעולה. הבדיקה מקבלת 100% מהציון,ואם לא אז 0% \n");
+            details.append("חישוב הציון:\n");
+            details.append("ציון הזמן *0.1= הציון הסופי של ");
+            // .append(report.getTimeRunTest());
+            details.append("<hr>");
+            details.append("<strong>שליחת הפונקציה אל ChatGpt: </strong>(10%):\n").append(
+                    "שליחת הפונקציה שלך לצאט ");
+            details.append("לדירוג מ10 עד 100 על פי הפרמטרים לעיל.");
+            details.append("חישוב הציון:\n");
+            details.append("קבלת הציון מהצאט*0.1= הציון הסופי של ");
+            details.append("<hr>");
+            details.append("<strong>ציון סופי</strong>:\n").append("<hr>").append(
+                    "חישוב הציון הסופי הוא ((" + solution.getGrade().getScoreOfTime() + " * 0.1)   +("
+                            + solution.getGrade().getScoreOfSteps() + "* 0.4) +   ("
+                            + solution.getGrade().getScoreOfMemory() + "* 0.1) + ("
+                            + solution.getGrade().getScoreOfChatGpt() + "* 0.1) + ("
+                            + solution.getGrade().getScoreValidtion() + "* 0.3)) / 10\n ="
+                            + solution.getGrade().getGrade());
+            hideExplaintion.setEnabled(true);
+            text.getElement().setProperty("innerHTML", details.toString());
+            text.getElement().getStyle().set("text-align", "right");
+            text.setText(details.toString());
+            dialog.add(text);
+            text.getStyle().set("white-space", "pre-line");
+
+            Button closeButton = new Button("Close", event -> dialog.close());
+            dialog.add(closeButton);
+            dialog.open();
+        } else {
             details.append("<strong>בדיקת הידור:</strong>\n")
-            .append("בדיקה שקובעת האם הקוד עובר הידור \n");
-            details.append("הבדיקה לא עברה קומפלציה" + exString +"\n");
+                    .append("בדיקה שקובעת האם הקוד עובר הידור \n");
+            details.append("הבדיקה לא עברה קומפלציה" + exString + "\n");
             details.append("<strong>השגיאות שעליך לתקן:</strong> \n").append(solution.getErrorsInCode()).append("\n");
             hideExplaintion.setEnabled(true);
             text.getElement().setProperty("innerHTML", details.toString());
@@ -512,6 +497,21 @@ public class CheckYourCodePage extends VerticalLayout {
             dialog.open();
         }
 
+    }
+    public boolean areAllElementsEqual(long[] arr) {
+        if (arr.length <= 1) {
+            return true;
+        }
+        long firstElement = arr[0];
+        for (int i = 1; i < arr.length ; i++) {
+            System.out.println("(+"+ i+"):\t"+arr[i]);
+            if (arr[i] != firstElement) 
+            {
+                System.out.println("arr=" + arr[i]);
+                return false;
+            }
+        }
+        return true;
     }
 
     private void showTheExplain(int indexForList) {
@@ -531,43 +531,43 @@ public class CheckYourCodePage extends VerticalLayout {
                 addSoultion.setEnabled(false);
             }
             ErrorsReport report = solution.getReport();
-                index = indexForList;
-                // Titles
-                // Explanations
-                details.append("<strong>בדיקת הידור:</strong>\n")
-                        .append("בדיקה שקובעת האם הקוד עובר הידור\n");
-                details.append("<hr>");
-                details.append("<strong>בדיקת תקינות של הפעולה:</strong>(30%):\n").append(
-                        ".הבדיקה נועדה לבדוק האם אתה מבצע את הפעולה הנדרשת בכל מצב.הבדיקה מורכבת מ 10 בדיקות של מערכים כל מערך בגודל 100 ומאוכסנים בו איברים בסדרים שיאתגרו את בניית הפונקציה שלך,אם חצי מהבדיקות נכשלו אז מבחינתי הפונקציה לא תקינה -אבל אם יותר ממחצית מהבדיקות נכונות אז בכל שגיאה יורד 10 נקודות מהציון הסופי\n");
-                details.append("<hr>");
-                details.append("<strong>מציאת סדר גודל:</strong> (40%):\n")
-                        .append("מציאת סדר גודל (זמן ריצה) של פונקציה ובדיקה האם הסדר גודל שנמצא הוא יעיל.")
-                        .append("אם אכן הוא יעיל מספיק אתה תקבל 100% מהציון ואם לא אז 0% \n").append(".")
-                        .append("את הסדר גודל אנחנו מוצאים על ידי מספר פעולות\n").append(".")
-                        .append(".ניצור את הנקודות דרך יצירת מערכים בלולאה מ10 עד 50 (בקפיצות של 10),בכל הפעלה של הפונקציה על מערך מוציאים את מספר הצעדים הגבוה ביותר שנעשתה לאחר שיש לנו את כמות הצעדים אז יוצרים נקודות.\n")
-                        .append("לאחר שמצאנו את הנקודות אפשר למצוא שיפועים ואז דרך השיפועים האלו אנחנו מוצאים את המרחקים בין שיפוע לשיפוע. ")
-                        .append("(x = גודל המערך,y= מספר הצעדים שנעשו).\n")
-                        .append("ולפי שלבים אלו ניתן למצוא את זמן הריצה של הפונקציה.\n");
-            }
-            details.append("<strong>בדיקת יעילות בזיכרון:</strong> (10%):\n").append(
-                    "בדיקה שמודדת את היעילות של הפונקציה   -פעולה לפונקציה לעשות מיון על מערך ענק(בגודל 50 אלף)  אם כמות הזיכרון שלקחה הפעולה עומד בכמות הזיכרון היעיל שהגדרנו (שאמור לקחת לפעולה הזאת). הבדיקה מקבלת 100% מהציון. ואם לא אז 0% \n");
-
-            details.append("<strong>בדיקת יעילות בפעולה:</strong>(10%):\n")
-                    .append("בדיקה שמודדת את היעילות של הפונקציה   - מדידה של הזמן שלוקח לפונקציה לעשות פעולה על מערך גדול(בגודל 50 אלף).\n  .אם הזמן שלקח עד לסיום הפעולה עומד בזמן שהגדרנו לפעולה. הבדיקה מקבלת 100% מהציון,ואם לא אז 0% \n");
-
+            index = indexForList;
+            // Titles
+            // Explanations
+            details.append("<strong>בדיקת הידור:</strong>\n")
+                    .append("בדיקה שקובעת האם הקוד עובר הידור\n");
             details.append("<hr>");
-            details.append("<strong>שליחת הפונקציה אל ChatGpt: </strong>(10%):\n").append(
-                    "שליחת הפונקציה שלך לצאט ");
-            details.append("לדירוג מ10 עד 100 על פי הפרמטרים לעיל.\n");
+            details.append("<strong>בדיקת תקינות של הפעולה:</strong>(30%):\n").append(
+                    ".הבדיקה נועדה לבדוק האם אתה מבצע את הפעולה הנדרשת בכל מצב.הבדיקה מורכבת מ 10 בדיקות של מערכים כל מערך בגודל 100 ומאוכסנים בו איברים בסדרים שיאתגרו את בניית הפונקציה שלך,אם חצי מהבדיקות נכשלו אז מבחינתי הפונקציה לא תקינה -אבל אם יותר ממחצית מהבדיקות נכונות אז בכל שגיאה יורד 10 נקודות מהציון הסופי\n");
             details.append("<hr>");
-            details.append("<strong>ציון סופי:</strong>:\n").append("<hr>").append(
-                    "חישוב הציון הסופי הוא ((" + "ציון הזמן" + " * 0.1)   +("
-                            + "ציון סדר גודל(זמן ריצה)" + "* 0.4) +   ("
-                            + "ציון זיכרון" + "* 0.1) + ("
-                            + "ציון של הצאט GPT" + "* 0.1) + ("
-                            + "ציון של תקינות הקוד" + "* 0.3)\n )/10 ="
-                            + "לציון הסופי");
-            hideExplaintion.setEnabled(true); 
+            details.append("<strong>מציאת סדר גודל:</strong> (40%):\n")
+                    .append("מציאת סדר גודל (זמן ריצה) של פונקציה ובדיקה האם הסדר גודל שנמצא הוא יעיל.")
+                    .append("אם אכן הוא יעיל מספיק אתה תקבל 100% מהציון ואם לא אז 0% \n").append(".")
+                    .append("את הסדר גודל אנחנו מוצאים על ידי מספר פעולות\n").append(".")
+                    .append(".ניצור את הנקודות דרך יצירת מערכים בלולאה מ10 עד 50 (בקפיצות של 10),בכל הפעלה של הפונקציה על מערך מוציאים את מספר הצעדים הגבוה ביותר שנעשתה לאחר שיש לנו את כמות הצעדים אז יוצרים נקודות.\n")
+                    .append("לאחר שמצאנו את הנקודות אפשר למצוא שיפועים ואז דרך השיפועים האלו אנחנו מוצאים את המרחקים בין שיפוע לשיפוע. ")
+                    .append("(x = גודל המערך,y= מספר הצעדים שנעשו).\n")
+                    .append("ולפי שלבים אלו ניתן למצוא את זמן הריצה של הפונקציה.\n");
+        }
+        details.append("<strong>בדיקת יעילות בזיכרון:</strong> (10%):\n").append(
+                "בדיקה שמודדת את היעילות של הפונקציה   -פעולה לפונקציה לעשות מיון על מערך ענק(בגודל 50 אלף)  אם כמות הזיכרון שלקחה הפעולה עומד בכמות הזיכרון היעיל שהגדרנו (שאמור לקחת לפעולה הזאת). הבדיקה מקבלת 100% מהציון. ואם לא אז 0% \n");
+
+        details.append("<strong>בדיקת יעילות בפעולה:</strong>(10%):\n")
+                .append("בדיקה שמודדת את היעילות של הפונקציה   - מדידה של הזמן שלוקח לפונקציה לעשות פעולה על מערך גדול(בגודל 50 אלף).\n  .אם הזמן שלקח עד לסיום הפעולה עומד בזמן שהגדרנו לפעולה. הבדיקה מקבלת 100% מהציון,ואם לא אז 0% \n");
+
+        details.append("<hr>");
+        details.append("<strong>שליחת הפונקציה אל ChatGpt: </strong>(10%):\n").append(
+                "שליחת הפונקציה שלך לצאט ");
+        details.append("לדירוג מ10 עד 100 על פי הפרמטרים לעיל.\n");
+        details.append("<hr>");
+        details.append("<strong>ציון סופי:</strong>:\n").append("<hr>").append(
+                "חישוב הציון הסופי הוא ((" + "ציון הזמן" + " * 0.1)   +("
+                        + "ציון סדר גודל(זמן ריצה)" + "* 0.4) +   ("
+                        + "ציון זיכרון" + "* 0.1) + ("
+                        + "ציון של הצאט GPT" + "* 0.1) + ("
+                        + "ציון של תקינות הקוד" + "* 0.3)\n )/10 ="
+                        + "לציון הסופי");
+        hideExplaintion.setEnabled(true);
 
         // Set the text contents
         textTest.removeAll();
@@ -582,8 +582,7 @@ public class CheckYourCodePage extends VerticalLayout {
         textTest.add(boldTitles, boldTexts);
     }
 
-    public void clearAll() 
-    {
+    public void clearAll() {
         textTest.removeAll();
         index = -1;
         System.out.println("clear All");
@@ -618,8 +617,6 @@ public class CheckYourCodePage extends VerticalLayout {
         Question question = questionService.findById(value);
         answerTextArea.setValue(question.getOpenQuestion());
         questionTitle.setText("שאלה: " + question.getQuestion());
-      
-    
 
     }
 

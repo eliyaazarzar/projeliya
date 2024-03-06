@@ -36,27 +36,30 @@ public class SolutionService
           listeners.add(listener);
        }
     }
-    public void addSolution(Solution solution) 
-    {
-        List<Solution> listOfSolutions =  getAllSolutions();
+    public void addSolution(Solution solution) {
+        List<Solution> listOfSolutions = getAllSolutions();
         int num;
-        if(listOfSolutions.size()==-1)
-        {
+        if (listOfSolutions == null || listOfSolutions.isEmpty()) {
             num = 0;
-        }else{
-         num = listOfSolutions.get(listOfSolutions.size()-1).getId()+1;
+        } else {
+            num = listOfSolutions.get(listOfSolutions.size() - 1).getId() + 1;
         }
         solution.setId(num);
-
+    
         SolutionRepo.insert(solution);
-          synchronized(listeners)
-          {
-            for (SoultionsChangeListner listener : listeners)
-            {
-                 listener.onChange();
+        synchronized (listeners) 
+        {
+            for (SoultionsChangeListner listener : listeners) {
+                try{
+                listener.onChange();
+                }catch (Exception e)
+                {
+                    System.out.println("the listener not get Change");
+                }
             }
         }
     }
+    
     public void deleteSolution(int id) {
         
     Optional<Solution> solution = SolutionRepo.findById(id);

@@ -21,7 +21,7 @@ public class HomePage extends VerticalLayout implements BeforeEnterObserver {
     private static final String REGISTER_VIEW = "register"; // Path to the register view
     private static final String PROFILE_VIEW = "profile"; // Path to the profile view
     private static final String CHANGE_PASSWORD_VIEW = "changepassword"; // Path to the change password view
-
+    private Button forAdminPage;
     private final UserService userService; 
 
     public HomePage(UserService userService) {
@@ -71,6 +71,9 @@ public class HomePage extends VerticalLayout implements BeforeEnterObserver {
 
     private void addUserView(String username) 
     {
+        String user = (String) VaadinSession.getCurrent().getAttribute("user");
+        User userForChackAdmin; 
+        userForChackAdmin = userService.getUserByID(username);
         H1 welcomeMessage = new H1("Welcome back, " + username + "!");
         welcomeMessage.getStyle().set("color", "#FFFFFF");
         
@@ -78,13 +81,21 @@ public class HomePage extends VerticalLayout implements BeforeEnterObserver {
         Button seeAllAnswersButton = new Button("allAnswers", e -> UI.getCurrent().navigate("/show"));
 
         Button changePasswordButton =new Button("ChackYourCode", e -> UI.getCurrent().navigate("/ChackYourCode"));
+        
+        forAdminPage = new Button("forAdminPage", e -> UI.getCurrent().navigate("/adminPage"));
+        if(userForChackAdmin.isFlag() ==  true)
+        {
+            forAdminPage.setVisible(true);
+        }else{
+            forAdminPage.setVisible(false);
 
+        }
         Button logoutButton = new Button("Logout", e -> {
             VaadinSession.getCurrent().setAttribute(USER_SESSION_KEY, null);
             updateUIBasedOnAuthState(); // Refresh UI to reflect the logout
         });
         
-        HorizontalLayout optionsLayout = new HorizontalLayout(profileButton, changePasswordButton,seeAllAnswersButton, logoutButton);
+        HorizontalLayout optionsLayout = new HorizontalLayout(profileButton, changePasswordButton,seeAllAnswersButton,forAdminPage,logoutButton);
         optionsLayout.setSpacing(true);
         
         add(welcomeMessage, optionsLayout);
