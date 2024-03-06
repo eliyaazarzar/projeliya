@@ -5,50 +5,24 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.7</version>
+		<version>3.1.8</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>eliyaa</groupId>
-	<artifactId>projeliya</artifactId>
+	<groupId>eliaproj</groupId>
+	<artifactId>ver2</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>projeliya</name>
+	<name>ver2</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>17</java.version>
-		<vaadin.version>24.3.2</vaadin.version>
+		<vaadin.version>24.3.5</vaadin.version>
 	</properties>
 	<dependencies>
-
-		<dependency>
-			<groupId>io.joern</groupId>
-			<artifactId>javaparser-core</artifactId>
-			<version>3.24.3-SL3</version>
- 			</dependency>
 	<dependency>
-    <groupId>com.vaadin</groupId>
-    <artifactId>vaadin-charts-flow</artifactId>
-		</dependency>
-			<dependency>
-			<groupId>com.github.javaparser</groupId>
-			<artifactId>javaparser-parent</artifactId>
-			<version>3.25.8</version>
-			<type>pom</type>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.jboss.forge</groupId>
-			<artifactId>parser-java-parent</artifactId>
-			<version>2.0.0.Alpha4</version>
-			<type>pom</type>
-		</dependency>
-
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.2</version>
-		</dependency>
-
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20210307</version>
+</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
@@ -61,14 +35,7 @@
 			<groupId>com.vaadin</groupId>
 			<artifactId>vaadin-spring-boot-starter</artifactId>
 		</dependency>
-		
-		<!-- Add org.json dependency -->
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20231013</version>
-		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -92,6 +59,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -103,21 +71,32 @@
 					</image>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>com.vaadin</groupId>
-				<artifactId>vaadin-maven-plugin</artifactId>
-				<version>${vaadin.version}</version>
-				<executions>
-					<execution>
-						<id>frontend</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>prepare-frontend</goal>
-							<goal>build-frontend</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>production</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.vaadin</groupId>
+						<artifactId>vaadin-maven-plugin</artifactId>
+						<version>${vaadin.version}</version>
+						<executions>
+							<execution>
+								<id>frontend</id>
+								<phase>compile</phase>
+								<goals>
+									<goal>prepare-frontend</goal>
+									<goal>build-frontend</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>

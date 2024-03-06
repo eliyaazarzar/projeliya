@@ -1,0 +1,17 @@
+{
+  "frontendFolder": "C:/vs-proj-eliya/ver22/ver2/./frontend",
+  "themeFolder": "themes",
+  "themeResourceFolder": "C:/vs-proj-eliya/ver22/ver2/./frontend/generated/jar-resources",
+  "staticOutput": "C:/vs-proj-eliya/ver22/ver2/target/classes/META-INF/VAADIN/webapp/VAADIN/static",
+  "generatedFolder": "generated",
+  "statsOutput": "C:\\vs-proj-eliya\\ver22\\ver2\\target\\classes\\META-INF\\VAADIN\\config",
+  "frontendBundleOutput": "C:\\vs-proj-eliya\\ver22\\ver2\\target\\classes\\META-INF\\VAADIN\\webapp",
+  "devBundleOutput": "C:/vs-proj-eliya/ver22/ver2/target/dev-bundle/webapp",
+  "devBundleStatsOutput": "C:/vs-proj-eliya/ver22/ver2/target/dev-bundle/config",
+  "jarResourcesFolder": "C:/vs-proj-eliya/ver22/ver2/./frontend/generated/jar-resources",
+  "themeName": "",
+  "clientServiceWorkerSource": "C:\\vs-proj-eliya\\ver22\\ver2\\target\\sw.ts",
+  "pwaEnabled": false,
+  "offlineEnabled": false,
+  "offlinePath": "'offline.html'"
+}
