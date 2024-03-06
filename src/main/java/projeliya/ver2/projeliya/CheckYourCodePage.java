@@ -106,7 +106,6 @@ public class CheckYourCodePage extends VerticalLayout {
         dialogForIndcate = new Dialog();
         progressBar = new ProgressBar();
         progressBar.setIndeterminate(true);
-        dialogForIndcate.add(progressBar);
 
         topBar = new HorizontalLayout();
         topBar.setWidthFull(); // Set the width to full to occupy the entire width of the page
@@ -186,27 +185,29 @@ public class CheckYourCodePage extends VerticalLayout {
         horizontalLayout.add(answerTextArea);
         // לחיצת על הכפתור
         submitButton.addClickListener(event -> {
-            dialogForIndcate.open();
             add(centerLayout);
             try {
                 Boolean result = null;
                 if (!textForOneChack.getValue().isEmpty()) {
                     if (selectQuestion.getValue().equals("SortArray")) {
                         result = service.runNumOfChackArrForSort(textForOneChack.getValue(), answerTextArea.getValue());
-                    } else if (selectQuestion.getValue().equals("removeDupicates")) {
+                    } else if (selectQuestion.getValue().equals("removeDuplicates")) {
+                   
                         result = service.runNumOfChackArrForRemoveDuplicates(textForOneChack.getValue(),
-                                answerTextArea.getValue());
+                                answerTextArea.getValue(),selectQuestion.getValue());
 
                     }
                     if (result == true && service.getCompile()) {
 
                         notification.show("compilation = true,n=" + textForOneChack.getValue() + " your code is good!");
+                        return;
                     } else if ((result == false) && service.getCompile() == true) {
                         notification.show("compilation = true,n=" + textForOneChack.getValue() + " fix your code!");
+                    return;
                     } else if (service.getCompile() == false) {
                         notification.show("compilation = false,n=" + textForOneChack.getValue() + " fix your code!");
+                        return;
                     }
-                    return;
                 } else {
                     Question question = questionService.findById(selectQuestion.getValue());
                     String NameOfFun = question.getNameOfFunc();

@@ -670,10 +670,9 @@ public class ServiceLogic {
         return thread3;
     }
 
-    public Boolean runNumOfChackArrForRemoveDuplicates(String question, String methodcode2)
+    public Boolean runNumOfChackArrForRemoveDuplicates(String num, String methodcode2,String question)
             throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException,
             IllegalAccessException, IllegalArgumentException, InvocationTargetException, InterruptedException {
-        String packageName = "package eliyaa.projecteliya;";
         String classTitle = "public class RunPitaron {";
         // main(String[] args) { ";
 
@@ -688,6 +687,7 @@ public class ServiceLogic {
         // Create source code file
         String className = "RunPitaron";
         String fileName = className + ".java";
+        biuldFile(fileName, classTitle + cleanedMethod2+"}");
         int compile2 = compileAndRunJavaFile(className, cleanedMethod2);
         System.out.println(compile2);
         if (compile2 == 0) {
@@ -699,8 +699,13 @@ public class ServiceLogic {
             URLClassLoader classLoader = new URLClassLoader(new URL[] { new File("./").toURI().toURL() });
             Class<?> dynamicClass = Class.forName(className, true, classLoader);
             method = dynamicClass.getMethod(questionForCheack.getNameOfFunc(), int[].class);
-            int[] arr = { 1, 2, 3, 45, 6, 7, 8, 9, 11, 9, 1, 1, 3, 3, 4, 5, 6, 6, 7, 8, 9, 6, 7 };
-
+            int numForArr = Integer.parseInt(num);
+            int[] arr =new int[numForArr];
+            arr[0]=1;
+            for(int i=1;i<arr.length;i++)
+        {
+            arr[i] = arr[i-1];                    
+           }
             int[] resultArr = (int[]) method.invoke(null, arr);
             System.out.println("im here 2");
             for (int i = 0; i < resultArr.length; i++) {
@@ -737,6 +742,8 @@ public class ServiceLogic {
         // Create source code file
         String className = "RunPitaron";
         String fileName = className + ".java";
+
+        biuldFile(fileName, classTitle + cleanedMethod2+"}");
         int compile2 = compileAndRunJavaFile(className, cleanedMethod2);
         System.out.println(compile2);
         if (compile2 == 0) {
@@ -1150,7 +1157,7 @@ public class ServiceLogic {
 
     public static void biuldFile(String fileName, String cleanedMethod2) {
         try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.println(cleanedMethod2);
+            writer.println(cleanedMethod2) ;
         } catch (IOException e) {
             e.printStackTrace();
         }
