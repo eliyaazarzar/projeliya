@@ -8,17 +8,23 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.VaadinSession;
 
 @PageTitle("LoginPage")
 @Route("/login")
 public class LoginPage extends VerticalLayout {
-
+    private static final String USER_SESSION_KEY = "user"; // Session attribute key for the user
     private UserService userService;
 
     public LoginPage(UserService userService) {
         this.userService = userService;
-        
+         String loggedInUsername = (String) VaadinSession.getCurrent().getAttribute(USER_SESSION_KEY);
+        if (loggedInUsername != null) {
+            System.out.println("-------- User NOT Authorized - can't use chat! --------");
+            UI.getCurrent().getPage().setLocation("/"); // Redirect to login page (HomePage).
+            return;       
 
+        }
         // Create login form
         LoginForm loginForm = new LoginForm();
         loginForm.setForgotPasswordButtonVisible(false); // Hide the "Forgot Password" link

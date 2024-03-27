@@ -2,8 +2,8 @@ package projeliya.ver2.projeliya;
 
 public class Point {
    private long x;
-   private int y;
-   public Point(long x, int y) {
+   private long y;
+   public Point(long x, long y) {
       this.x = x;
       this.y = y;
    }
@@ -11,7 +11,7 @@ public class Point {
    public long getX() {
       return x;
    }
-   public int getY() {
+   public long getY() {
     return y;
  }
 }

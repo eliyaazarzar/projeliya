@@ -14,14 +14,14 @@ public class Examination
     public String getRunTime() {
         return runTime;
     }
-    private double timeEffectiveAction;
+    private int timeEffectiveAction;
     private double MemoryEffectiveAction;
     private String runTime;
     private String runAvergeTime;
     public Examination() {
     }
     
-    public Examination(String id, int[][] arr, List<String> explainTheArrays, double timeEffectiveAction,
+    public Examination(String id, int[][] arr, List<String> explainTheArrays, int timeEffectiveAction,
             double memoryEffectiveAction, String runTime, String runAvergeTime) {
         this.id = id;
         this.arr = arr;
@@ -44,7 +44,7 @@ public class Examination
         this.runAvergeTime = runAvergeTime;
     }
 
-    public Examination(String id, int[][] arr, List<String> explainTheArrays, double timeEffectiveAction,
+    public Examination(String id, int[][] arr, List<String> explainTheArrays, int timeEffectiveAction,
             double memoryEffectiveAction, String runTime) {
         this.id = id;
         this.arr = arr;
@@ -53,7 +53,7 @@ public class Examination
         MemoryEffectiveAction = memoryEffectiveAction;
         this.runTime = runTime;
     }
-    public Examination(String id, int[][] arr, List<String> explainTheArrays, double timeEffectiveAction,
+    public Examination(String id, int[][] arr, List<String> explainTheArrays, int timeEffectiveAction,
             double memoryEffectiveAction) {
         this.id = id;
         this.arr = arr;
@@ -79,10 +79,10 @@ public class Examination
     public void setExplainTheArrays(List<String> explainTheArrays) {
         this.explainTheArrays = explainTheArrays;
     }
-    public double getTimeEffectiveAction() {
+    public int getTimeEffectiveAction() {
         return timeEffectiveAction;
     }
-    public void setTimeEffectiveAction(double timeEffectiveAction) {
+    public void setTimeEffectiveAction(int timeEffectiveAction) {
         this.timeEffectiveAction = timeEffectiveAction;
     }
     public double getMemoryEffectiveAction() {

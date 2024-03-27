@@ -18,7 +18,8 @@ public class RegisterPage extends VerticalLayout {
 
     private UserService userService;
 
-    public RegisterPage(UserService userService) {
+    public RegisterPage(UserService userService) 
+    {
         this.userService = userService;
         
 

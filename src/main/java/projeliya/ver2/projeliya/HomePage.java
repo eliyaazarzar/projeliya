@@ -1,107 +1,40 @@
 package projeliya.ver2.projeliya;
-
-import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.VaadinSession;
 
-@Route("/")
+@Route(value = "/", layout = AppMainLayout.class)
 @PageTitle("HomePage")
-public class HomePage extends VerticalLayout implements BeforeEnterObserver {
+public class HomePage extends VerticalLayout {
 
-    private static final String USER_SESSION_KEY = "user"; // Session attribute key for the user
-    private static final String LOGIN_VIEW = "login"; // Path to the login view
-    private static final String REGISTER_VIEW = "register"; // Path to the register view
-    private static final String PROFILE_VIEW = "profile"; // Path to the profile view
-    private static final String CHANGE_PASSWORD_VIEW = "changepassword"; // Path to the change password view
-    private Button forAdminPage;
-    private final UserService userService; 
+    private static final String IMAGE_LOGO_URL = "https://programmaticponderings.files.wordpress.com/2023/04/shutterstock_680929729.jpg";
 
-    public HomePage(UserService userService) {
-        this.userService = userService;
+    public HomePage() {
         setupUI();
-    
-    
-    
-    
-    
     }
 
     private void setupUI() {
-                
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.CENTER);
-        getStyle().set("background", "linear-gradient(to right, #FFD700, #FFA500)");
+        getStyle().set("background", "linear-gradient(to right, #000000, #808080)");
 
-        updateUIBasedOnAuthState();
+        addContent();
     }
 
-    private void updateUIBasedOnAuthState() {
-        removeAll(); // Important: Clear the UI before adding components
-        String loggedInUsername = (String) VaadinSession.getCurrent().getAttribute(USER_SESSION_KEY);
-        if (loggedInUsername != null) {
-            addUserView(loggedInUsername);
-        } else {
-            addGuestView();
-        }
-    }
-
-    private void addGuestView() {
-        H1 title = new H1("Welcome to My Website");
+    private void addContent() {
+        H1 title = new H1("ברוכים הבאים לאתר שמטרתו מתן ציון לפתרונות על ידי בדיקות אוטומטיות");
         title.getStyle().set("color", "#FFFFFF");
-        Paragraph description = new Paragraph("Discover a world of possibilities.");
+
+        Paragraph description = new Paragraph("בפרוייקט זה ישנם שאלות המיועדים לתלמידי התיכון והם יכולים לענות עליהם ולקבל חיווי עד כמה הפתרונות שלהם טובים - בנוסף הם יכולים לראות פתרונות אחרים שיש במערכת וללמוד מהם");
         description.getStyle().set("color", "#FFFFFF");
-        
-        Button signInButton = new Button("Login", e -> UI.getCurrent().navigate(LOGIN_VIEW));
-        Button signUpButton = new Button("Register", e -> UI.getCurrent().navigate(REGISTER_VIEW));
-        
-        HorizontalLayout buttonsLayout = new HorizontalLayout(signInButton, signUpButton);
-        buttonsLayout.setSpacing(true);
-        
-        add(title, description, buttonsLayout);
-    }
 
-    private void addUserView(String username) 
-    {
-        String user = (String) VaadinSession.getCurrent().getAttribute("user");
-        User userForChackAdmin; 
-        userForChackAdmin = userService.getUserByID(username);
-        H1 welcomeMessage = new H1("Welcome back, " + username + "!");
-        welcomeMessage.getStyle().set("color", "#FFFFFF");
-        
-        Button profileButton = new Button("Profile", e -> UI.getCurrent().navigate("/profile"));
-        Button seeAllAnswersButton = new Button("allAnswers", e -> UI.getCurrent().navigate("/show"));
+        Image img = new Image(IMAGE_LOGO_URL, "photo");
+        img.setHeight("300px");
 
-        Button changePasswordButton =new Button("ChackYourCode", e -> UI.getCurrent().navigate("/ChackYourCode"));
-        
-        forAdminPage = new Button("forAdminPage", e -> UI.getCurrent().navigate("/adminPage"));
-        if(userForChackAdmin.isFlag() ==  true)
-        {
-            forAdminPage.setVisible(true);
-        }else{
-            forAdminPage.setVisible(false);
-
-        }
-        Button logoutButton = new Button("Logout", e -> {
-            VaadinSession.getCurrent().setAttribute(USER_SESSION_KEY, null);
-            updateUIBasedOnAuthState(); // Refresh UI to reflect the logout
-        });
-        
-        HorizontalLayout optionsLayout = new HorizontalLayout(profileButton, changePasswordButton,seeAllAnswersButton,forAdminPage,logoutButton);
-        optionsLayout.setSpacing(true);
-        
-        add(welcomeMessage, optionsLayout);
-    }
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        // Optional: Redirect logic based on auth state can be added here
+        add(img, title, description);
     }
 }

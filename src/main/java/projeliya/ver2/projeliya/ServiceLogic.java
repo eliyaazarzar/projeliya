@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,7 +32,13 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.vaadin.flow.component.Synchronize;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.cookieconsent.CookieConsent.Position;
+import com.vaadin.flow.component.internal.ComponentMetaData.SynchronizedPropertyInfo;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.server.VaadinSession;
 import org.springframework.stereotype.Service;
 
@@ -40,13 +49,12 @@ public class ServiceLogic {
     private long[] arrayOfDistance;
     private static Thread previousThread = null;
     private int testPassed = 0;
-    private int numOfIterations = 50000;
+    private int numOfIterations = 30000;
     private int numOfItrationsSort = 50;
     private String codeForFronted;
     private int index = 0;
     private int sizeOfArrFunc = 0;
     private int incAndDec = 0;
-    private long efectiveMemory = 49249784;
     private int countParmters = 0;
     private static int[] arrForFunc;
     public static double successRate = 0;
@@ -76,7 +84,7 @@ public class ServiceLogic {
     private String fileName = className + ".java";
     private String readyCode = "";
     private int timeForSteps = 1000000;
-    private int timeForTimeAndMemory = 100000;
+    private int timeForTimeAndMemory;
     private String stringRunTime;
     private String resultStringGpt;
     private QuestionService questionService;
@@ -86,6 +94,9 @@ public class ServiceLogic {
     private ExaminationService examinationService;
     private ErrorsReport errorsReport;
     private Examination examinationQuestion;
+    private long memoryClient;
+    private String cleanCode;
+
 
     public ServiceLogic(HomeRepository repo, QuestionService questionService, ExaminationService examinationService) {
         this.questionService = questionService;
@@ -112,10 +123,29 @@ public class ServiceLogic {
         // Use Files.newBufferedWriter to write to the file
         // Create source code file
         // System.out.println(fileName + readyCode);
-        Thread t2 = biuldFileThread(fileName, processCode(cleanedMethod2));
-        System.out.println("----------------------");
+        System.out.println("....//????");
+                Thread threadForProcess = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized(lock) { // Synchronize using the lock object
+                    cleanCode = processCode(cleanedMethod2);
+                }
+                // Add any further processing or actions here
+            }
+        });
+        
+        Boolean success = countTime(threadForProcess, 5);
+        System.out.println("....//????2");
+            if(success ==false)
+            {
+            Notification.show("There is an infinite loop in this code is forbidden!", 3000, Notification.Position.BOTTOM_CENTER);
+                return -1;
+            }
+        Thread t2 = biuldFileThread(fileName,cleanCode );
         t2.start();
         t2.join();
+        System.out.println("----------------------");
+      
         System.out.println("----------------------"); // Compile the source file
         int compileResult = compileAndRunJavaFile(className, cleanedMethod2);
         System.out.println("Compilation result: " + compileResult);
@@ -131,11 +161,9 @@ public class ServiceLogic {
             int[][] arrForChack = examinationQuestion.getArr();
             if (questionName.equals("SortArray")) {
                 method = dynamicClass.getMethod("SelectionSort", int[].class);
-
                 ChackFuncOfClientSort(method, arrForChack);
 
-            } else if (questionName.equals("removeDuplicates")) 
-            {
+            } else if (questionName.equals("removeDuplicates")) {
                 method = dynamicClass.getMethod("removeDuplicates", int[].class);
                 FuncOfClientRemoveDuplicate(method, arrForChack);
             }
@@ -160,56 +188,78 @@ public class ServiceLogic {
             manyStepsThread.start();
             manyStepsThread.join();
             System.out.println("Thared runTimeSteps end!");
-            // Thread runManyThread = buildThreadForRunMany();
-            // Runtime runtime = Runtime.getRuntime();
-            // runtime.gc();
-            // System.out.println("Thared runTime Start!");
-            // boolean resultForTimeScore = countTime(runManyThread, timeForTimeAndMemory);
-            // long memoryClient = runtime.totalMemory() - runtime.freeMemory();
-            // System.out.println("------------------ get res Ended! ------------------");
-            // if (resultForTimeScore)
-            // {
-            // System.out.println("Thread finished before the maximum time.");
-            // } else {
-            // System.out.println("Thread did not finish before the maximum time and was
-            // interrupted.");
-            // }
-            // System.out.println("Time taken by the Client method: " + memoryClient + "
-            // bytes");
-            // System.out.println("Memory used by the my method: " + efectiveMemory + "
-            // bytes");
-            // System.out.println("testPassed = " + testPassed);
-            // codeFronted = readyCode;
-            // System.out.println("time score is: " + resultForTimeScore);
+            Thread runManyThread = buildThreadForRunMany();
+            Runtime runtime = Runtime.getRuntime();
+            System.out.println("Thared runTime Start!");
+            int timeForTimeAndMemory = examinationQuestion.getTimeEffectiveAction();
+            boolean resultForTimeScore = countTime(runManyThread, timeForTimeAndMemory);
+            memoryClient = 0;
+            // int[] arrayTest = { 1, 2, 23, 32, 1 };
+            // Object result;
+            // result = method.invoke(null, (Object) arrayTest); // Invoking the method with arrayTest as an argument
+            // int totalArraySize = 0;
+            // // Parameter[] parameters = method.getParameters();
+            // // // Iterating over each parameter
+            // // for (Parameter parameter : parameters) {
+            // //     Class<?> parameterType = parameter.getType();
+            // //     // Checking if the parameter is an array
+            // //     if (parameterType.isArray()) {
+            // //         // Accessing the value of the parameter from the arrayTest
+            // //         Object argument = Array.get(parameter, 0); // Accessing arrayTest directly
+            // //         // Checking if the value is indeed an array
+            // //         if (argument != null && argument.getClass().isArray()) {
+            // //             // Getting the size of the array
+            // //             int arraySize = Array.getLength(argument);
+            // //             // Adding the size to the totalArraySize
+            // //             totalArraySize += arraySize;
+            // //         }
+            // //     }
+            // // }
+        //    System.out.println("total size:" + totalArraySize);
+            if (resultForTimeScore) 
+            {
+                errorsReport.setTimeRunTest(true);
+                System.out.println("Thread finished before the maximum time.");
+            } else {
+                errorsReport.setTimeRunTest(false);
+                System.out.println("Thread did not finish before the maximum time and wasinterrupted.");
+            }
+            System.out.println("the min time for the Thread was " + timeForTimeAndMemory);
+            System.out.println("Time taken by the Client method: " + memoryClient + "bytes");
+            System.out.println("testPassed = " + testPassed);
+            codeFronted = readyCode;
+            System.out.println("time score is: " + resultForTimeScore);
 
             timeScore = 0;
             memoryScore = 0;
             long timeDifference = 0;
             double memoryDifference = 0;
-            // if (resultForTimeScore == true) {
-            // timeScore = 100;
-            // } else {
-            // timeScore = 0;
-            // }
-            // if (efectiveMemory >= memoryClient || efectiveMemory >= memoryClient - 200 &&
-            // resultForTimeScore == true) {
-            // memoryScore = 100;
-            // } else {
-            // memoryScore = 0;
-            // }
+            if (resultForTimeScore == true) {
+                timeScore = 100;
+                System.out.println("timeScore" + timeScore);
+            } else {
+                timeScore = 0;
+            }
+            double efectiveMemory = examinationQuestion.getMemoryEffectiveAction();
+            if (efectiveMemory >= memoryClient || efectiveMemory >= memoryClient - 1000) {
+                errorsReport.setMemoryTest(true);
+                memoryScore = 100;
+            } else {
+                memoryScore = 0;
+                errorsReport.setMemoryTest(false);
+            }
             String runTimeEfective = examinationQuestion.getRunTime();
             String AveregRunTime = examinationQuestion.getRunAvergeTime();
             System.out.println(result);
             System.out.println("effective RunTime = " + runTimeEfective);
             System.out.println("client RunTime =" + stringRunTime);
-            System.out.println("success RunTime = " + successRate +"runTimeAverge = " + stringRunTime);
+            System.out.println("success RunTime = " + successRate + "runTimeAverge = " + stringRunTime);
             if (runTimeEfective.equals(stringRunTime)) {
                 System.out.println("the run time is size = " + stringRunTime);
                 stepsScore = 100;
-            } else if(stringRunTime.equals(AveregRunTime)&&successRate == 100)
-             {
+            } else if (AveregRunTime!= null && stringRunTime.equals(AveregRunTime) && successRate == 100) {
                 stepsScore = 50;
-            }else{
+            } else {
                 stepsScore = 0;
             }
             // Get a score from chatGPT
@@ -244,9 +294,10 @@ public class ServiceLogic {
             stepsScoreWeighted = stepsScore;
             chatGptScoreWeighted = chatGptScore;
             memoryWeighted = memoryScore;
+            timeWeighted = timeScore;
             System.out.println("----------------------------");
             System.out.println("timeScore after multiplication by 0.1: " + timeWeighted);
-            System.out.println("memoryScore after multiplication by 0.2: " + memoryWeighted);
+            System.out.println("memoryScore after multiplication by 0.1: " + memoryWeighted);
             System.out.println("successRate after multiplication by 0.3: " + successRateWeighted);
             System.out.println("stepsScore after multiplication by 0.4: " + stepsScoreWeighted);
             System.out.println("chatGptScore after multiplication by 0.1: " + chatGptScoreWeighted);
@@ -317,7 +368,6 @@ public class ServiceLogic {
         successRate = 100.0 - (totalTests * errorCount);
         System.out.println("Success rate: " + successRate + "%");
         errorsReport.setErrorsArraysExplain(listErrors);
-        
 
         testPassed = totalTests + errorCount;
     }
@@ -327,24 +377,23 @@ public class ServiceLogic {
         successRate = 0;
         ArrayList<String> listErrors = new ArrayList<>();
         System.out.println("---------------------------------------------");
-
-        System.out.println("input array11:" + Arrays.toString(inputsArray[0]));
-
-        int[][] expectedOutputsArray = new int[inputsArray.length][];
-
+        System.out.println("input array1:" + Arrays.toString(inputsArray[0]));
+        int[][] expectedOutputsArray = new int[inputsArray.length][inputsArray[0].length];
         for (int i = 0; i < inputsArray.length; i++) {
             int[] inputCopy = Arrays.copyOf(inputsArray[i], inputsArray[i].length);
-            int[] arrayAfter = removeDuplicates(inputCopy);
+
+            int[] arrayAfter = removeDuplicatesforTesting(inputCopy);
             expectedOutputsArray[i] = arrayAfter;
         }
-
         int counter = inputsArray.length;
         int totalTests = inputsArray.length;
         int errorCount = 0;
 
         for (int i = 0; i < totalTests; i++) {
             int[] resultArray = returnResultOfFuncClient(method, inputsArray[i]);
-            System.out.println("Test Case " + (i + 1) + ":");
+            // System.out.println("method,"+ method);
+            System.out.println(resultArray);
+            // System.out.println("Test Case " + (i + 1) + ":");
             // System.out.println("Input Array: " + Arrays.toString(inputsArray[i]));
             // System.out.println("Expected Output Array: " +
             // Arrays.toString(expectedOutputsArray[i]));
@@ -353,9 +402,7 @@ public class ServiceLogic {
                 errorCount--;
                 listErrors.add(examinationQuestion.getExplainTheArrays().get(i));
                 System.out.println("Error: Output mismatch!");
-                // System.out.println("Actual Output Array: " + Arrays.toString(resultArray));
-                // System.out.println("Expected Output Array: " +
-                // Arrays.toString(expectedOutputsArray[i]));
+
             }
         }
 
@@ -369,34 +416,37 @@ public class ServiceLogic {
             int errors = totalTests + errorCount;
             successRate = 100 + (errors * 5);
         }
-
+        System.out.println("finish the task of The chaeck of the function");
         testPassed = totalTests + errorCount;
     }
 
-    public static int[] removeDuplicates(int[] array) {
-        int count = 0;
-        int[] uniqueArray = new int[array.length];
-
-        for (int i = 0; i < array.length; i++) {
-            boolean isDuplicate = false;
-            for (int j = 0; j < count; j++) {
-                if (array[i] == uniqueArray[j]) {
-                    isDuplicate = true;
-                    break;
-                }
-            }
-            if (!isDuplicate) {
-                uniqueArray[count] = array[i];
+    public int[] removeDuplicatesforTesting(int[] nums) {
+        if (nums == null || nums.length == 0) {
+            return new int[0]; // Return an empty array if input is null or empty
+        }
+        
+        // Count the number of unique elements
+        int count = 1;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] != nums[i - 1]) {
                 count++;
             }
         }
-        int[] finalArray = new int[count];
-        for (int i = 0; i < count; i++) {
-            finalArray[i] = uniqueArray[i];
+        
+        // Create a new array to store the unique elements
+        int[] result = new int[count];
+        result[0] = nums[0];
+        int index = 1;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] != nums[i - 1]) {
+                result[index++] = nums[i];
+            }
         }
-
-        return finalArray;
+        
+        return result;
     }
+    
+
     public void calculateAndPrintSteps(Method methodClient, int numOfIterationsSorted) throws IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchFieldException, SecurityException {
         int stepsSize = 10;
@@ -437,16 +487,14 @@ public class ServiceLogic {
         long[] arrayRealDifference = new long[5];
         System.out.println(arrSlopes.length);
         System.out.println("start distance calculation");
-        for (int i = 0; i < arrSlopes.length - 6; i++) 
-        {
+        for (int i = 0; i < arrSlopes.length - 6; i++) {
             System.out.println("in here in the slpeols distances");
             long sumOfDistance = arrSlopes[i + 1] - arrSlopes[i];
-            if (sumOfDistance >= 0) 
-            {
+            if (sumOfDistance >= 0) {
                 arrayRealDifference[i] = arrSlopes[i + 1] - arrSlopes[i];
                 System.out.println("distance is: " + arrayRealDifference[i]);
             }
-        
+
         }
         System.out.println("end distance calculation");
         System.out.println("size of arrSlopes= " + arrayRealDifference.length);
@@ -454,12 +502,11 @@ public class ServiceLogic {
         errorsReport.setArrayOfDistance(arrayRealDifference);
 
         System.out.println("---go the the end part---");
-        System.out.println("reslt"+areAllElementsEqual(arrSlopes));
+        System.out.println("reslt" + areAllElementsEqual(arrSlopes));
         if (isAllZeros(arrSlopes) && isAllZeros(arrayRealDifference)) {
             stringRunTime = "O(1)";
             System.out.println("This is O(1)");
-        } else if (areAllElementsEqual(arrSlopes)) 
-        {
+        } else if (areAllElementsEqual(arrSlopes)) {
             stringRunTime = "O(N)";
             errorsReport.setRunTimeOfFunc(stringRunTime);
 
@@ -487,8 +534,8 @@ public class ServiceLogic {
                         return;
                     }
                     chackN3 = chackN3 / 10;
-                    System.out.println(chackN3 + " =?" + (stepsSize * 30));
                 }
+               
             }
             if ((arrayRealDifference[1] - arrayRealDifference[0]) == ((stepsSize * 40))) {
                 stringRunTime = "O^4";
@@ -496,6 +543,10 @@ public class ServiceLogic {
 
                 System.out.println("This is O^4");
                 return;
+
+            }else{
+                stringRunTime = "up N^3";
+                errorsReport.setRunTimeOfFunc("up N^3");
 
             }
 
@@ -542,18 +593,16 @@ public class ServiceLogic {
         }
         long firstElement = arr[0];
         for (int i = 1; i < arr.length - 6; i++) {
-            System.out.println("(+"+ i+"):\t"+arr[i]);
-            if (arr[i] != firstElement) 
-            {
+            System.out.println("(+" + i + "):\t" + arr[i]);
+            if (arr[i] != firstElement) {
                 System.out.println("arr=" + arr[i]);
                 return false;
             }
         }
         return true;
     }
-    
-    public Thread getGradeForSteps()
-     {
+
+    public Thread getGradeForSteps() {
 
         Thread thread10 = new Thread(new Runnable() {
             @Override
@@ -594,22 +643,23 @@ public class ServiceLogic {
                 System.out.println("finished");
             } catch (Exception e) {
                 // Handle exceptions gracefully\
-                System.out.println("its end");
+                System.out.println(" end");
                 System.err.println("An error occurred during method execution: " + e.getMessage());
                 Thread.currentThread().interrupt();
-
             }
             System.out.println("Thread end");
         });
     }
 
-    public Thread chatGptFuncThread(String cleanedMethod2) throws InterruptedException {
+    public Thread chatGptFuncThread(String cleanedMethod2, String taskFunc) throws InterruptedException {
         // Create a new ExecutorService
         // Define the task
         Runnable task = () -> {
             synchronized (lock) {
                 resultStringGpt = chatGPT(truncateMessage(cleanCode(
-                        "Give me a score from 10 to 100 (when you respond The goal of the code I'm sending you should be a sorted array, if it doesn't do that, deduct it from the score according to your opinion, provide only the score without explanations or words, just the number). Rate this function based on efficiency, code integrity, and memory usage. "
+                        "Give me a score from 10 to 100 (when you respond The goal of the code I'm sending you should be a"
+                                + taskFunc
+                                + " if it doesn't do that, deduct it from the score according to your opinion, provide only the score without explanations or words, just the number). Rate this function based on efficiency, code integrity, and memory usage. "
                                 + cleanedMethod2),
                         4096));
             }
@@ -620,29 +670,17 @@ public class ServiceLogic {
         return thread;
     }
 
-   
-    // public static Boolean countTime(Thread longRunningThread, int seconds) {
-
-    // longRunningThread.start();
-
-    // try {
-    // // Sleep for 15 seconds to simulate the long-running action
-    // Thread.sleep((seconds*1000));
-    // } catch (InterruptedException e) {
-    // e.printStackTrace();
-    // }
-    // // thread
-    // if (longRunningThread.isAlive())
-    // {
-    // System.out.println("Long-running action taking too long, interrupting...");
-    // longRunningThread.interrupt();
-
-    // Thread.currentThread().interrupt();
-    // return false;
-    // }
-
-    // return true;
-    // }
+    public static boolean countTime(Thread longRunningThread, int miliSeconds) throws InterruptedException {
+        System.out.println("start Count THARED");
+        longRunningThread.start(); // התחל את התהליך המועבר
+        Thread.sleep(miliSeconds * 1000); // המתן עבור מספר השניות הנתונות
+        if (longRunningThread.isAlive()) { // אם התהליך עדיין פועל
+            longRunningThread.stop(); // עצור את התהליך
+            System.out.println("The task didn't finish in the expected time!");
+            return false; // החזר ערך שקר
+        }
+        return true; // אם התהליך הופסק או סיים בזמן, החזר ערך אמת
+    }
 
     private static void clearFile(String fileName) throws IOException {
         // פתח את הקובץ לכתיבה ומחק את תוכנו
@@ -670,7 +708,7 @@ public class ServiceLogic {
         return thread3;
     }
 
-    public Boolean runNumOfChackArrForRemoveDuplicates(String num, String methodcode2,String question)
+    public Boolean runNumOfChackArrForRemoveDuplicates(String num, String methodcode2, String question)
             throws IOException, ClassNotFoundException, NoSuchMethodException, SecurityException,
             IllegalAccessException, IllegalArgumentException, InvocationTargetException, InterruptedException {
         String classTitle = "public class RunPitaron {";
@@ -687,7 +725,7 @@ public class ServiceLogic {
         // Create source code file
         String className = "RunPitaron";
         String fileName = className + ".java";
-        biuldFile(fileName, classTitle + cleanedMethod2+"}");
+        biuldFile(fileName, classTitle + cleanedMethod2 + "}");
         int compile2 = compileAndRunJavaFile(className, cleanedMethod2);
         System.out.println(compile2);
         if (compile2 == 0) {
@@ -700,19 +738,18 @@ public class ServiceLogic {
             Class<?> dynamicClass = Class.forName(className, true, classLoader);
             method = dynamicClass.getMethod(questionForCheack.getNameOfFunc(), int[].class);
             int numForArr = Integer.parseInt(num);
-            int[] arr =new int[numForArr];
-            arr[0]=1;
-            for(int i=1;i<arr.length;i++)
-        {
-            arr[i] = arr[i-1];                    
-           }
+            int[] arr = new int[numForArr];
+            arr[0] = 1;
+            for (int i = 1; i < arr.length; i++) {
+                arr[i] = arr[i - 1];
+            }
             int[] resultArr = (int[]) method.invoke(null, arr);
             System.out.println("im here 2");
             for (int i = 0; i < resultArr.length; i++) {
                 System.out.print(resultArr[i] + ",");
             }
             System.out.println("end -  need to sort arr");
-            int[] expectedResult = removeDuplicates(arr);
+            int[] expectedResult = removeDuplicatesforTesting(arr);
             // Check if the result array is equal to the sorted array
             if (Arrays.equals(expectedResult, expectedResult)) {
                 return true;
@@ -743,7 +780,7 @@ public class ServiceLogic {
         String className = "RunPitaron";
         String fileName = className + ".java";
 
-        biuldFile(fileName, classTitle + cleanedMethod2+"}");
+        biuldFile(fileName, classTitle + cleanedMethod2 + "}");
         int compile2 = compileAndRunJavaFile(className, cleanedMethod2);
         System.out.println(compile2);
         if (compile2 == 0) {
@@ -898,7 +935,6 @@ public class ServiceLogic {
         System.out.println("thared  end!");
     }
 
-
     public void FuncOfClientRemoveDuplicate(Method mathod, int[][] arraysForFunc) throws InterruptedException {
         Thread threadTestFunc = new Thread(new Runnable() {
             @Override
@@ -998,6 +1034,22 @@ public class ServiceLogic {
         }
 
         return null;
+    }
+
+    public void ProccesForMemory(Method method)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+
+        Runtime runtime = Runtime.getRuntime();
+
+        int[] randomArray = new int[20000];
+        for (int i = 0; i < randomArray.length; i++) {
+            randomArray[i] = (int) (Math.random() * 1000000);
+        }
+        runtime.gc();
+        returnMethodMultipleTimes(method, randomArray);
+        synchronized (lock) {
+            memoryClient = runtime.totalMemory() - runtime.freeMemory();
+        }
     }
 
     public void returnMethodMultipleTimes(Method method, int[] randomArray)
@@ -1157,7 +1209,7 @@ public class ServiceLogic {
 
     public static void biuldFile(String fileName, String cleanedMethod2) {
         try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.println(cleanedMethod2) ;
+            writer.println(cleanedMethod2);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1221,6 +1273,10 @@ public class ServiceLogic {
 
     public void setSuccessRateWeighted(double successRateWeighted) {
         this.successRateWeighted = successRateWeighted;
+    }
+
+    public void execute() {
+
     }
 
     public void setStepsScoreWeighted(double stepsScoreWeighted) {

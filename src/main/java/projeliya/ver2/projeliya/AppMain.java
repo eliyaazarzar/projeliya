@@ -11,8 +11,7 @@ public class AppMain implements AppShellConfigurator
 {
 	public static void main(String[] args) 
 	{
-		SpringApplication.run(AppMain.class, args);
-	
+		SpringApplication.run(AppMain.class, args);	
 	}
 
 }

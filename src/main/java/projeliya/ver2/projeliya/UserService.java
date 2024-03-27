@@ -58,6 +58,7 @@ public class UserService
 
         // User does not exist, proceed to insert
         try {
+            user.setFlag(false);
             usersRepo.insert(user); // insert new user into MongoDB
             return true;
         } catch (Exception e) {
